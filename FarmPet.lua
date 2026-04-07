@@ -1,4 +1,4 @@
--- 8:32
+-- 8:42
 local router = nil
 
 repeat
@@ -47,6 +47,7 @@ local DoNeonFusion = game:GetService("ReplicatedStorage"):WaitForChild("API"):Wa
 _G.PetTask = "none"
 _G.FarmPause = false
 _G.EventName = "eggs_2026"
+_G.SessionMainPetUnique = nil
 ---------------------------------------------------------------------------------------------------------------------------
 
 --debugger
@@ -257,6 +258,12 @@ local function ConvertPetName(petname)
 end
 
 local function equipPet()
+    if _G.SessionMainPetUnique then
+        EquipRemote:InvokeServer(_G.SessionMainPetUnique, {
+            use_sound_delay = true,
+            equip_as_last = false
+        })
+    end
     local playerData = ClientData.get_data()[Player.Name]
     if not playerData or not playerData.inventory or not playerData.inventory.pets then
         warn("No pet inventory found")
@@ -294,7 +301,7 @@ local function equipPet()
         warn("No pet found to equip")
         return
     end
-
+    _G.SessionMainPetUnique = petToEquip
     EquipRemote:InvokeServer(petToEquip, {
         use_sound_delay = true,
         equip_as_last = false
