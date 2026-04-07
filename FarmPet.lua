@@ -1,4 +1,4 @@
--- 9:15
+-- 9:25
 local router = nil
 
 repeat
@@ -416,7 +416,7 @@ local function buyFurnitures()
             task.wait(1)
             startingMoney = getCurrentMoney()
         else
-            dbg(item.kind, " not bought")
+            dbg(item.kind .. " not bought")
         end
     end
 end
@@ -608,7 +608,7 @@ local function runFusionPhase(wantNeon)
         if success then
             dbg("Successfully fused 4 " .. fusionKind .. " into a " .. resultName .. "!")
         else
-            dbg("Failed to fuse " .. fusionKind .. ":", result)
+            dbg("Failed to fuse " .. fusionKind .. ":" .. result)
             break
         end
 
@@ -671,13 +671,13 @@ local function getCandies()
 end
 
 local function HoldAndDrop()
-    dbg('holding pet', ClientData.get('pet_char_wrappers')[1].char)
+    dbg('holding pet' .. ClientData.get('pet_char_wrappers')[1].char)
     local args = {
         ClientData.get('pet_char_wrappers')[1].char
     }
     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
     task.wait(1)
-    dbg('dropping pet', ClientData.get('pet_char_wrappers')[1].char)
+    dbg('dropping pet' .. ClientData.get('pet_char_wrappers')[1].char)
     local args = {
         ClientData.get('pet_char_wrappers')[1].char
     }
@@ -832,7 +832,7 @@ local function fireAllMatching(pattern, args)
     local fired = false
     for _, child in pairs(net:GetChildren()) do
         if string.find(child.Name, pattern, 1, true) then
-            dbg("Firing:", child.Name, "|", child.ClassName)
+            dbg("Firing:" .. child.Name .. "|" .. child.ClassName)
             pcall(function()
                 if child.ClassName == "RemoteEvent" then
                     child:FireServer(unpack(args or {}))
@@ -845,7 +845,7 @@ local function fireAllMatching(pattern, args)
         end
     end
     if not fired then
-        dbg("⚠️ No match found for pattern:", pattern)
+        dbg("⚠️ No match found for pattern:" .. pattern)
     end
 end
 
@@ -1475,7 +1475,7 @@ task.spawn(function()
                         game:GetService("Players").LocalPlayer.Character
                     }
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateFurniture"):InvokeServer(unpack(args))
-                    dbg("found it! ", x, y.kind)
+                    dbg("found it! " .. x .. y.kind)
                     break
                 end
             end
