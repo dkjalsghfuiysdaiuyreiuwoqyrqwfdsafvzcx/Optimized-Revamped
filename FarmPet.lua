@@ -1,4 +1,4 @@
--- 8:42
+-- 8:50
 local router = nil
 
 repeat
@@ -964,10 +964,14 @@ if getgenv().HiraXRey.RemoveAllUI then
         end
     end)
 end
+
 task.spawn(function()
     while getgenv().HiraXRey.PetFarm do
         if not _G.FarmPause then
             dbg('loop again')
+            if ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique ~= _G.SessionMainPetUnique then
+                equipPet()
+            end
             ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
             local equippedPet =  ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
             local babyAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.baby_ailments
