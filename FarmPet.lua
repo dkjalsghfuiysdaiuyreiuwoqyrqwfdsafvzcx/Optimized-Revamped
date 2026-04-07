@@ -1,4 +1,4 @@
---print 8:22
+-- 8:32
 local router = nil
 
 repeat
@@ -815,80 +815,96 @@ end
 teleportPlayerNeeds(0, 500, 0)
 createPlatform()
 
+ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+local net = game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net")
+
+-- Wait a bit for all children to replicate
+task.wait(2)
+
+local function fireAllMatching(pattern, args)
+    local fired = false
+    for _, child in pairs(net:GetChildren()) do
+        if string.find(child.Name, pattern, 1, true) then
+            print("Firing:", child.Name, "|", child.ClassName)
+            pcall(function()
+                if child.ClassName == "RemoteEvent" then
+                    child:FireServer(unpack(args or {}))
+                    fired = true
+                elseif child.ClassName == "RemoteFunction" then
+                    child:InvokeServer(unpack(args or {}))
+                    fired = true
+                end
+            end)
+        end
+    end
+    if not fired then
+        print("⚠️ No match found for pattern:", pattern)
+    end
+end
 
 local function doEventTasks()
-    local getCandiesEvent = getCandies()
-    -- game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("adoptme_new.modules.Dailies.DailiesNetService:9"):FireServer("sugarfest")
-    -- game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("adoptme_new.modules.Dailies.DailiesNetService:15"):FireServer("sugarfest")
-    -- game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("adoptme_legacy_shared.ContentPacks.Sugarfest2026.Game.BoardGame.BoardGameNetService:23"):FireServer()
+    fireAllMatching("DailiesNetService", {"sugarfest"})
+    fireAllMatching("BoardGameNetService", {})
+
     for x, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
         if y.kind == "sugarfest_2026_dice" then
-            dbg("Using Sugarfest Dice")
-            local args = {
+            print("Using Sugarfest Dice")
+            local equipArgs = {
                 y.unique,
                 {
                     use_sound_delay = true,
                     equip_as_last = false
                 }
             }
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(args))
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(equipArgs))
 
-            local args = {
-                {
-                    dice_item_unique = y.unique
-                }
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("adoptme_legacy_shared.ContentPacks.Sugarfest2026.Game.BoardGame.BoardGameNetService:10"):FireServer(unpack(args))
+            fireAllMatching("BoardGameNetService", {{
+                dice_item_unique = y.unique
+            }})
 
             task.wait(1)
         end
+
         if y.kind == "sugarfest_2026_custom_dice" then
-            dbg("Using Custom Dice")
-            local args = {
+            print("Using Custom Dice")
+            local equipArgs = {
                 y.unique,
                 {
                     use_sound_delay = true,
                     equip_as_last = false
                 }
             }
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(args))
-            local args = {
-                {
-                    dice_item_unique = y.unique,
-                    supplied_distance = 6
-                }
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("adoptme_legacy_shared.ContentPacks.Sugarfest2026.Game.BoardGame.BoardGameNetService:10"):FireServer(unpack(args))
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(equipArgs))
+
+            fireAllMatching("BoardGameNetService", {{
+                dice_item_unique = y.unique,
+                supplied_distance = 6
+            }})
         end
     end
 
     if getgenv().HiraXRey.AutoChisel then
-        task.spawn(function()
-            local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-            for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
+        for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
 
-                if y.kind == "sugarfest_2026_candy_chisel" then
+            if y.kind == "sugarfest_2026_candy_chisel" then
+                local args = {
+                    y.unique,
+                    "START"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/ServerUseTool"):FireServer(unpack(args))
+                for x = 1, 1000 do
                     local args = {
-                        y.unique,
-                        "START"
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/ServerUseTool"):FireServer(unpack(args))
-                    for x = 1, 1000 do
-                        local args = {
-                            {
-                                carve_amount = x
-                            }
+                        {
+                            carve_amount = x
                         }
-                        game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffCarve"):InvokeServer(unpack(args))
-                        game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
-                    end
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffCarve"):InvokeServer(unpack(args))
                     game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
                 end
+                game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
             end
-        end)
-    end
-    if getCandies then 
-        return true
+        end
+
     end
 end
 
