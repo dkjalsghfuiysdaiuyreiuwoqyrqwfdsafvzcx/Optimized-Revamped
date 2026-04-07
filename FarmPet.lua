@@ -874,7 +874,8 @@ local function doEventTasks()
         end
     end
 
-    if getgenv().HiraXRey.AutoChisel then
+    if true then
+        local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
         local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
         local maxChisel = math.floor(EggsCandies / 6500)
         local buyArgs = {
@@ -886,11 +887,19 @@ local function doEventTasks()
         }
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(buyArgs))
         print("Using Chisel")
+        teleportPlayerNeeds(0.38591, 31.60706, -1570.59106)
+        for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
+            if y.kind == "sugarfest_2026_candy_chisel" then 
+                local args = {
+                    y.unique,
+                    "START"
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/ServerUseTool"):FireServer(unpack(args))
 
-        for x = 1, maxChisel do
-            pcall(function()
-                net:WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
-            end)
+                pcall(function()
+                    net:WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
+                end)
+            end
         end
     end
 
