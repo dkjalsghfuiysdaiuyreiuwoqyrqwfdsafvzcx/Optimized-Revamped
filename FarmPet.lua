@@ -1,4 +1,4 @@
--- 10:40
+-- 10:45
 local router = nil
 
 repeat
@@ -672,15 +672,16 @@ end
 
 local function HoldAndDrop()
     local success, err = pcall(function()
-        dbg('holding pet ' .. ClientData.get('pet_char_wrappers')[1].char)
+        local char = tostring(ClientData.get('pet_char_wrappers')[1].char)
+        dbg('holding pet ' .. char)
         local args = {
-            ClientData.get('pet_char_wrappers')[1].char
+            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
         }
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
         task.wait(1)
-        dbg('dropping pet ' .. ClientData.get('pet_char_wrappers')[1].char)
+        dbg('dropping pet ' .. char)
         local args = {
-            ClientData.get('pet_char_wrappers')[1].char
+            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
         }
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(unpack(args))
     end)
