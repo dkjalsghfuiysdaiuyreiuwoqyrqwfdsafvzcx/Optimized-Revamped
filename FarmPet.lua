@@ -1,13 +1,24 @@
-local router
-for i, v in next, getgc(true) do
-    if type(v) == 'table' and rawget(v, 'get_remote_from_cache') then
-        router = v
+local router = nil
+
+repeat
+    for i, v in next, getgc(true) do
+        if type(v) == "table" and rawget(v, "get_remote_from_cache") then
+            router = v
+            break
+        end
     end
-end
+    if not router then
+        print("⏳ Router retrying...")
+        task.wait(1)
+    end
+until router ~= nil
+
+print("✅ Router found!")
 
 local function rename(remotename, hashedremote)
     hashedremote.Name = remotename
 end
+
 table.foreach(debug.getupvalue(router.get_remote_from_cache, 1), rename)
 
 local Players = game:GetService("Players")
@@ -848,6 +859,25 @@ local function doEventTasks()
             }
             game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("adoptme_legacy_shared.ContentPacks.Sugarfest2026.Game.BoardGame.BoardGameNetService:10"):FireServer(unpack(args))
         end
+    end
+
+    if getgenv().HiraXRey.AutoChisel then
+        local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
+        local maxChisel = math.floor(EggsCandies / 6500)
+        local args = {
+            "gifts",
+            "sugarfest_2026_candy_chisel",
+            {
+                buy_count = maxChisel
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+        print("Using Chisel")
+
+        for x = 1, maxChisel do
+            game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
+        end
+        
     end
     if getCandies then 
         return true
