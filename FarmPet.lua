@@ -1,4 +1,4 @@
--- 9:25
+-- 10:40
 local router = nil
 
 repeat
@@ -671,17 +671,25 @@ local function getCandies()
 end
 
 local function HoldAndDrop()
-    dbg('holding pet' .. ClientData.get('pet_char_wrappers')[1].char)
-    local args = {
-        ClientData.get('pet_char_wrappers')[1].char
-    }
-    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
-    task.wait(1)
-    dbg('dropping pet' .. ClientData.get('pet_char_wrappers')[1].char)
-    local args = {
-        ClientData.get('pet_char_wrappers')[1].char
-    }
-    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(unpack(args))
+    local success, err = pcall(function()
+        dbg('holding pet ' .. ClientData.get('pet_char_wrappers')[1].char)
+        local args = {
+            ClientData.get('pet_char_wrappers')[1].char
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
+        task.wait(1)
+        dbg('dropping pet ' .. ClientData.get('pet_char_wrappers')[1].char)
+        local args = {
+            ClientData.get('pet_char_wrappers')[1].char
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(unpack(args))
+    end)
+
+    if not success then
+        warn("HoldAndDrop error: " .. tostring(err) .. " | retrying in 1s...")
+        task.wait(1)
+        HoldAndDrop()
+    end
 end
 
 local function HasAilment(ailments, targetKind)
