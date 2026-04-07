@@ -1,4 +1,4 @@
--- 8:50
+-- 9:15
 local router = nil
 
 repeat
@@ -832,7 +832,7 @@ local function fireAllMatching(pattern, args)
     local fired = false
     for _, child in pairs(net:GetChildren()) do
         if string.find(child.Name, pattern, 1, true) then
-            print("Firing:", child.Name, "|", child.ClassName)
+            dbg("Firing:", child.Name, "|", child.ClassName)
             pcall(function()
                 if child.ClassName == "RemoteEvent" then
                     child:FireServer(unpack(args or {}))
@@ -845,7 +845,7 @@ local function fireAllMatching(pattern, args)
         end
     end
     if not fired then
-        print("⚠️ No match found for pattern:", pattern)
+        dbg("⚠️ No match found for pattern:", pattern)
     end
 end
 
@@ -855,7 +855,7 @@ local function doEventTasks()
 
     for x, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
         if y.kind == "sugarfest_2026_dice" then
-            print("Using Sugarfest Dice")
+            dbg("Using Sugarfest Dice")
             local equipArgs = {
                 y.unique,
                 {
@@ -873,7 +873,7 @@ local function doEventTasks()
         end
 
         if y.kind == "sugarfest_2026_custom_dice" then
-            print("Using Custom Dice")
+            dbg("Using Custom Dice")
             local equipArgs = {
                 y.unique,
                 {
@@ -891,6 +891,16 @@ local function doEventTasks()
     end
 
     if getgenv().HiraXRey.AutoChisel then
+        local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
+        local maxChisel = math.floor(EggsCandies / 6500)
+        local buyArgs = {
+            "gifts",
+            "sugarfest_2026_candy_chisel",
+            {
+                buy_count = maxChisel
+            }
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(buyArgs))
         for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
 
             if y.kind == "sugarfest_2026_candy_chisel" then
@@ -969,6 +979,7 @@ task.spawn(function()
     while getgenv().HiraXRey.PetFarm do
         if not _G.FarmPause then
             dbg('loop again')
+            _G.PetTask = "None"
             if ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique ~= _G.SessionMainPetUnique then
                 equipPet()
             end
