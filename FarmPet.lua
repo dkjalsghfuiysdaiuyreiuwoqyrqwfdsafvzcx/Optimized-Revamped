@@ -33,6 +33,7 @@ local startingMoney
 local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
 local ConvertedPetNameCache = {}
 local ConvertedPetKindToNameCache = {}
+local ConvertedPetKindToNameCacheHTTP = {}
 
 local CheckBoxDialog = game:GetService("Players").LocalPlayer.PlayerGui.DialogApp.Dialog.CheckboxDialog
 local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
@@ -48,6 +49,8 @@ _G.PetTask = "none"
 _G.FarmPause = false
 _G.EventName = "eggs_2026"
 _G.SessionMainPetUnique = nil
+---------------------------------------------------------------------------------------------------------------------------
+local CLIENT_URL = "https://rey-x-hub.vercel.app/api/items" -- change this
 ---------------------------------------------------------------------------------------------------------------------------
 
 --debugger
@@ -193,6 +196,57 @@ local function optimizer()
 end
 local function getCurrentMoney()
     return require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].money
+end
+
+
+local function decodeJSON(str)
+    if type(str) ~= "string" or str == "" then return nil end
+    local ok, result = pcall(function() return HttpService:JSONDecode(str) end)
+    return ok and result or nil
+end
+
+local function httpJSON(url, method, bodyTable)
+    local response = http_request({
+        Url    = url,
+        Method = method or "GET",
+        Headers = {
+            ["Content-Type"] = "application/json",
+            ["Accept"]       = "application/json"
+        },
+        Body = bodyTable and HttpService:JSONEncode(bodyTable) or nil
+    })
+    local status = response.StatusCode or response.status_code or 0
+    local body   = response.Body or response.body or ""
+    print("HTTP " .. method .. " " .. url .. " → " .. status)
+    return status, decodeJSON(body), body
+end
+
+local function ConvertPetKindToNameHTTP(petname)
+    if not petname or petname == "" then return petname end
+    if ConvertedPetKindToNameCacheHTTP[petname] then return ConvertedPetKindToNameCacheHTTP[petname] end
+
+    for _, pack in ipairs(ContentPacks:GetChildren()) do
+        local inventorySubDB = pack:FindFirstChild("InventorySubDB")
+        local petsModule = inventorySubDB and inventorySubDB:FindFirstChild("Pets")
+
+        if pack:IsA("Folder") and petsModule then
+            local petsTable = require(petsModule)
+            for _, petInfo in pairs(petsTable) do
+                if petInfo.id == petname then
+                    ConvertedPetKindToNameCacheHTTP[petname] = {
+                        name   = petInfo.name,
+                        kind   = petInfo.kind,
+                        rarity = petInfo.rarity,
+                        model  = petInfo.model,
+                    }
+                    return ConvertedPetKindToNameCacheHTTP[petname]
+                end
+            end
+        end
+    end
+
+    warn("Could not find pet data for:", petname)
+    return nil
 end
 
 local function ConvertPetKindToName(petname)
@@ -900,6 +954,7 @@ local function doEventTasks()
     end
 
     if getgenv().HiraXRey.AutoChisel then
+        dbg("Buying Chisel")
         local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
         local maxChisel = math.floor(EggsCandies / 6500)
         local buyArgs = {
@@ -911,8 +966,9 @@ local function doEventTasks()
         }
         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(buyArgs))
         for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
-
+            
             if y.kind == "sugarfest_2026_candy_chisel" then
+                dbg("Opening Chisel")
                 local args = {
                     y.unique,
                     "START"
@@ -968,6 +1024,90 @@ if getgenv().HiraXRey.PetPen then
         end
     end)
 end
+
+if getgenv().HiraXRey.SyncStats then
+    task.spawn(function()
+        local inventoryPets = ClientData.get_data()[Player.Name].inventory.pets
+        local petGroups = {}
+
+        for _, pet in pairs(inventoryPets) do
+            local converted = ConvertPetKindToNameHTTP(pet.kind)
+
+            if converted then
+                local variant = pet.properties and pet.properties.mega_neon and "MEGA"
+                                or pet.properties and pet.properties.neon and "NEON"
+                                or "NORMAL"
+                local potion = pet.properties and pet.properties.rideable and pet.properties.flyable and "FLY_RIDE"
+                                or pet.properties and pet.properties.rideable and "RIDE"
+                                or pet.properties and pet.properties.flyable and "FLY"
+                                or "NONE"
+
+                local key = converted.name .. "|" .. variant .. "|" .. potion
+
+                if petGroups[key] then
+                    petGroups[key].quantity += 1
+                else
+                    petGroups[key] = {
+                        thumbnailImage = "https://cdn.playadopt.me/items/" .. pet.kind .. ".png",
+                        type           = "PET",
+                        name           = converted.name,
+                        variant        = variant,
+                        potion         = potion,
+                        rarity         = string.upper(converted.rarity or ""),
+                        quantity       = 1,
+                    }
+                end
+            else
+                warn("⚠️ Skipped unknown pet kind:", pet.kind)
+            end
+        end
+
+        local itemsToUpload = {}
+        for _, item in pairs(petGroups) do
+            table.insert(itemsToUpload, item)
+            print("📦 Queued:", item.name, "x" .. item.quantity)
+        end
+
+        local CHUNK_SIZE = 2
+
+        for i = 1, #itemsToUpload, CHUNK_SIZE do
+            local chunk = {}
+            for j = i, math.min(i + CHUNK_SIZE - 1, #itemsToUpload) do
+                table.insert(chunk, itemsToUpload[j])
+            end
+
+            local isFirst = i == 1  -- only first chunk does full replace, rest append
+
+            print("📤 Uploading chunk " .. math.ceil(i / CHUNK_SIZE) .. " (" .. #chunk .. " pets)...")
+
+            local status, data, raw = httpJSON(CLIENT_URL, "POST", {
+                account       = Player.Name,
+                device        = getgenv().HiraXRey.DeviceName,
+                apiKey        = getgenv().HiraXRey.ApiKey,
+                potions       = 123,
+                bucks         = 12342,
+                eventCurrency = 12345,
+                tickets       = 123456,
+                append        = not isFirst,  -- first chunk replaces, rest append
+                items         = chunk
+            })
+
+            if status == 200 or status == 201 then
+                print("✅ Chunk uploaded successfully!")
+            else
+                warn("❌ Chunk failed | Status: " .. tostring(status) .. " | Raw: " .. tostring(raw))
+                break  -- stop if a chunk fails
+            end
+
+            task.wait(0.5)
+        end
+
+        print("✅ All pets uploaded!")
+    
+    end)
+
+end
+
 if getgenv().HiraXRey.RemoveAllUI then
     -- existing GUIs
     for _, gui in pairs(playerGui:GetChildren()) do
