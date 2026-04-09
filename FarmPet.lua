@@ -1,4 +1,4 @@
--- 10:45
+-- 1:52
 local router = nil
 
 repeat
@@ -38,7 +38,7 @@ local ConvertedPetKindToNameCacheHTTP = {}
 local CheckBoxDialog = game:GetService("Players").LocalPlayer.PlayerGui.DialogApp.Dialog.CheckboxDialog
 local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
 local ignore = {ButtonGUI = true, PetFarmGUI = true}
-
+local HttpService       = game:GetService("HttpService")
 local ContentPacks = game:GetService("ReplicatedStorage").SharedModules.ContentPacks
 local AddPetRemote = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("IdleProgressionAPI/AddPet")
 local RemovePetRemote = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("IdleProgressionAPI/RemovePet")
