@@ -1,4 +1,4 @@
--- 2:29
+-- 2:51
 local router = nil
 
 repeat
@@ -1186,6 +1186,7 @@ end
 local function MainFarm()
     
     _G.PetTask = "None"
+    teleportPlayerNeeds(0, 500, 0)
     if ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique ~= _G.SessionMainPetUnique then
         equipPet()
     end
