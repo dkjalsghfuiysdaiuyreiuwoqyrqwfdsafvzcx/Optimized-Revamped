@@ -1,4 +1,4 @@
--- 1:59
+-- 2:29
 local router = nil
 
 repeat
@@ -318,54 +318,85 @@ local function ConvertPetName(petname)
 end
 
 local function equipPet()
-    if _G.SessionMainPetUnique then
-        EquipRemote:InvokeServer(_G.SessionMainPetUnique, {
-            use_sound_delay = true,
-            equip_as_last = false
-        })
-    end
-    local playerData = ClientData.get_data()[Player.Name]
-    if not playerData or not playerData.inventory or not playerData.inventory.pets then
-        warn("No pet inventory found")
-        return
-    end
+    local ok, unique = pcall(function()
+        return ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
+    end)
 
-    local inventoryPets = playerData.inventory.pets
-    local prioritizePet = getgenv().HiraXRey.PrioritizePet
-    local prioritizedKind = prioritizePet and ConvertPetName(prioritizePet) or nil
-
-    local petToEquip = nil
-    
-    for _, pet in pairs(inventoryPets) do
-        if pet.kind ~= "practice_dog" then
-            petToEquip = pet.unique
-
-            if pet.properties and pet.properties.age == 6 then
-                break
-            end
+    if not ok or not unique then
+        if _G.SessionMainPetUnique then
+            EquipRemote:InvokeServer(_G.SessionMainPetUnique, {
+                use_sound_delay = true,
+                equip_as_last = false
+            })
         end
-    end
-    if prioritizedKind then
-        for _, pet in pairs(inventoryPets) do
-            if pet.kind == prioritizedKind then
-                petToEquip = pet.unique
 
+        local playerData = ClientData.get_data()[Player.Name]
+        if not playerData or not playerData.inventory or not playerData.inventory.pets then
+            warn("No pet inventory found")
+            return
+        end
+
+        local inventoryPets = playerData.inventory.pets
+        local prioritizePet = getgenv().HiraXRey.PrioritizePet
+        local prioritizedKind = prioritizePet and ConvertPetName(prioritizePet) or nil
+
+        local petToEquip = nil
+
+        for _, pet in pairs(inventoryPets) do
+            if pet.kind ~= "practice_dog" then
+                petToEquip = pet.unique
                 if pet.properties and pet.properties.age == 6 then
                     break
                 end
             end
         end
-    end
 
-    if not petToEquip then
-        warn("No pet found to equip")
-        return
+        if prioritizedKind then
+            for _, pet in pairs(inventoryPets) do
+                if pet.kind == prioritizedKind then
+                    petToEquip = pet.unique
+                    if pet.properties and pet.properties.age == 6 then
+                        break
+                    end
+                end
+            end
+        end
+
+        if not petToEquip then
+            warn("No pet found to equip")
+            return
+        end
+
+        _G.SessionMainPetUnique = petToEquip
+        EquipRemote:InvokeServer(petToEquip, {
+            use_sound_delay = true,
+            equip_as_last = false
+        })
     end
-    _G.SessionMainPetUnique = petToEquip
-    EquipRemote:InvokeServer(petToEquip, {
-        use_sound_delay = true,
-        equip_as_last = false
-    })
+end
+
+local function HoldAndDrop()
+    equipPet()
+    local success, err = pcall(function()
+        local char = tostring(ClientData.get('pet_char_wrappers')[1].char)
+        dbg('holding pet ' .. char)
+        local args = {
+            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
+        task.wait(1)
+        dbg('dropping pet ' .. char)
+        local args = {
+            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(unpack(args))
+    end)
+
+    if not success then
+        warn("HoldAndDrop error: " .. tostring(err) .. " | retrying in 1s...")
+        task.wait(1)
+        HoldAndDrop()
+    end
 end
 
 local furnitureList = {
@@ -730,29 +761,6 @@ local function getCandies()
     return true
 end
 
-local function HoldAndDrop()
-    local success, err = pcall(function()
-        local char = tostring(ClientData.get('pet_char_wrappers')[1].char)
-        dbg('holding pet ' .. char)
-        local args = {
-            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
-        task.wait(1)
-        dbg('dropping pet ' .. char)
-        local args = {
-            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(unpack(args))
-    end)
-
-    if not success then
-        warn("HoldAndDrop error: " .. tostring(err) .. " | retrying in 1s...")
-        task.wait(1)
-        HoldAndDrop()
-    end
-end
-
 local function HasAilment(ailments, targetKind)
     if typeof(ailments) ~= "table" then
         return false
@@ -767,6 +775,7 @@ end
 
 local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitureNumber)
     dbg("doing " .. petTask .. " Task")
+    equipPet()
     ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
     local equippedPet =  ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
     if specialFurnitureNumber then
@@ -1675,6 +1684,15 @@ task.spawn(function()
                     task.wait(120)
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
                     task.wait(10)
+                    local args = {
+                        _G.SessionMainPetUnique,
+                        {
+                            use_sound_delay = true,
+                            equip_as_last = false
+                        }
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Unequip"):InvokeServer(unpack(args))
+                    equipPet()
                     _G.FarmPause = true
                 end
             end
