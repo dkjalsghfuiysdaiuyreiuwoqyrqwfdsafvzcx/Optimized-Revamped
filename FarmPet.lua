@@ -1,4 +1,4 @@
--- 1:52
+-- 1:59
 local router = nil
 
 repeat
@@ -195,7 +195,13 @@ local function optimizer()
     end
 end
 local function getCurrentMoney()
-    return require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].money
+    local ok, result = pcall(function()
+        return require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].money
+    end)
+    if ok then
+        return result
+    end
+    return nil
 end
 
 
@@ -1124,259 +1130,311 @@ if getgenv().HiraXRey.RemoveAllUI then
     end)
 end
 
-task.spawn(function()
-    while getgenv().HiraXRey.PetFarm do
-        if not _G.FarmPause then
-            dbg('loop again')
-            _G.PetTask = "None"
-            if ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique ~= _G.SessionMainPetUnique then
-                equipPet()
+local function AutoLure()
+    local isFinishedLure, BasicLure
+
+    local success = pcall(function()
+        local data = ClientData.get_data()[Player.Name]
+        BasicLure = data.lures_2023_lure_manager.lures_map.BasicLure
+        isFinishedLure = BasicLure.finished
+    end)
+
+    if not success then
+        warn("BasicLure not found")
+    end
+    if isFinishedLure then
+        local args = {
+            game:GetService("Players").LocalPlayer,
+            furnitureList[7].furnID,
+            "UseBlock",
+            false,
+            game:GetService("Players").LocalPlayer.Character
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateFurniture"):InvokeServer(unpack(args))
+    end
+    if not BasicLure then
+        for x, y in pairs(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].inventory.food) do
+            if y.kind == getgenv().HiraXRey.LureBait then
+                -- put bait
+                local args = {
+                    game:GetService("Players").LocalPlayer,
+                    furnitureList[7].furnID,                          
+                    "UseBlock",
+                    {
+                        bait_unique = x
+                    },
+                    game:GetService("Players").LocalPlayer.Character
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateFurniture"):InvokeServer(unpack(args))
+                dbg("found it! " .. x .. y.kind)
+                break
             end
-            ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-            local equippedPet =  ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
-            local babyAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.baby_ailments
-            local petAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet]
+        end
+    end
+    task.wait(10)
+end
 
-            if petAilments then
-                for _, ailment in pairs(petAilments) do
-                    if ailment.kind == "hungry" then
-                        _G.PetTask = "Hungry (PET)"
-                        HandlePetAilments(5, "UseBlock", "hungry")
+local function MainFarm()
+    
+    _G.PetTask = "None"
+    if ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique ~= _G.SessionMainPetUnique then
+        equipPet()
+    end
+    ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+    local equippedPet =  ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
+    local babyAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.baby_ailments
+    local petAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet]
 
-                    end
-                    if ailment.kind == "thirsty" then
-                        _G.PetTask = "Thristy (PET)"
-                        HandlePetAilments(4, "UseBlock", "thirsty")            
-                    end
-                    if ailment.kind == "dirty" then
-                        _G.PetTask = "Dirty (PET)"
-                        HandlePetAilments(2, "Seat1", "dirty")
-                    end
-                    if ailment.kind == "sleepy" then
-                        _G.PetTask = "Sleepy (PET)"
-                        HandlePetAilments(1, "UseBlock", "sleepy")
-                    end
-                    if ailment.kind == "toilet" then
-                        _G.PetTask = "Toilet (PET)"
-                        HandlePetAilments(6, "UseBlock", "toilet")
-                    end
-                    if ailment.kind == "bored" then
-                        _G.PetTask = "Bored (PET)"
-                        HandlePetAilments(3, "Seat1", "bored")
-                    end
-                    if ailment.kind == "sick" then
-                        _G.PetTask = "Sick (PET)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
-                        HoldAndDrop()
-                        getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
-                        HandlePetAilments(0, "Seat1", "sick", getgenv().HospitalBedID)
-                    end
-                    if ailment.kind == "salon" then
-                        _G.PetTask = "Salon (PET)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
-                        HoldAndDrop()
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.ailments[equippedPet],
-                            "salon"
-                        )
-                    end
-                    if ailment.kind == "pizza_party" then
-                        _G.PetTask = "Pizza Party (PET)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
-                        HoldAndDrop()
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.ailments[equippedPet],
-                            "pizza_party"
-                        )
-                    end
-                    if ailment.kind == "school" then
-                        _G.PetTask = "School (PET)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
-                        HoldAndDrop()
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.ailments[equippedPet],
-                            "school"
-                        )
-                    end
-                    if ailment.kind == "beach_party" then
-                        _G.PetTask = "Beach Party (PET)"
-                        local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
-                        teleportPlayerNeeds(-551, 70, -1485)
-                        createPlatform("beach_party")
-                        HoldAndDrop()
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.ailments[equippedPet],
-                            "beach_party"
-                        )
-                    end
-                    if ailment.kind == "camping" then
-                        _G.PetTask = "Camping (PET)"
-                        local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
-                        teleportPlayerNeeds(-20.9, 70, -1056.7)
-                        createPlatform("camping")
-                        HoldAndDrop()
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.ailments[equippedPet],
-                            "camping"
-                        )
-                    end
-                    if ailment.kind == "pet_me" then
-                        _G.PetTask = "Pet Me (PET)"
-                        local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                        game:GetService("ReplicatedStorage").API['AdoptAPI/FocusPet']:FireServer(ClientData.get('pet_char_wrappers')[1].char)
-                        task.wait(1)
-                        game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(ClientData.get('pet_char_wrappers')[1].char, {
-                                ['FocusPet'] = true,
-                                ['Petting'] = true,
-                            })
-                        task.wait(1)
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AilmentsAPI/ProgressPetMeAilment"):FireServer(ClientData.get('pet_char_wrappers')[1].pet_unique)
-                        game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(ClientData.get('pet_char_wrappers')[1].char, {
-                                ['FocusPet'] = false,
-                                ['Petting'] = false,
-                            })
-                        HoldAndDrop()
-                    end
-                    if ailment.kind == "play" then
-                        _G.PetTask = "Play (PET)"
-                        for i = 1, 3 do -- Loop 3 times
-                            for i, v in pairs(ClientData.get("inventory").toys) do
-                                if v.id == "squeaky_bone_default" then
-                                    ToyToThrow = v.unique
-                                end
-                            end
-                            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetObjectAPI/CreatePetObject"):InvokeServer("__Enum_PetObjectCreatorType_1", {["reaction_name"] = "ThrowToyReaction", ["unique_id"] = ToyToThrow})
-                            wait(7) -- Wait 4 seconds before next iteration
-                        end
-                        HoldAndDrop()
-                    end
-                    if ailment.kind == "walk" then
-                        _G.PetTask = "Walk (PET)"
-                        -- Get the player's character and HumanoidRootPart
-                        local Player = game.Players.LocalPlayer
-                        local Character = Player.Character or Player.CharacterAdded:Wait()
-                        local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-                        local Humanoid = Character:WaitForChild("Humanoid") -- Get the humanoid
-                        -- Set the distance and duration for the walk
-                        local walkDistance = 1000  -- Adjust the distance as needed
-                        local walkDuration = 30    -- Adjust the time in seconds as needed
-                        -- Store the initial position to walk back to it later
-                        local initialPosition = HumanoidRootPart.Position
-                        -- Define the goal position (straight ahead in the character's current direction)
-                        local forwardPosition = initialPosition + (HumanoidRootPart.CFrame.LookVector * walkDistance)
-                        -- Calculate speed to match walkDuration
-                        local walkSpeed = walkDistance / walkDuration
-                        Humanoid.WalkSpeed = walkSpeed -- Temporarily set the humanoid's walk speed
-                        -- Move to the forward position and back twice
-                        for i = 1, 2 do
-                            Humanoid:MoveTo(forwardPosition)
-                            Humanoid.MoveToFinished:Wait() -- Wait until the humanoid reaches the target
-                            task.wait(1) -- Optional pause after reaching the position
+    if petAilments then
+        for _, ailment in pairs(petAilments) do
+            if ailment.kind == "hungry" then
+                _G.PetTask = "Hungry (PET)"
+                HandlePetAilments(5, "UseBlock", "hungry")
 
-                            Humanoid:MoveTo(initialPosition)
-                            Humanoid.MoveToFinished:Wait() -- Wait until the humanoid returns to the initial position
-                            task.wait(1) -- Optional pause after returning
+            end
+            if ailment.kind == "thirsty" then
+                _G.PetTask = "Thristy (PET)"
+                HandlePetAilments(4, "UseBlock", "thirsty")            
+            end
+            if ailment.kind == "dirty" then
+                _G.PetTask = "Dirty (PET)"
+                HandlePetAilments(2, "Seat1", "dirty")
+            end
+            if ailment.kind == "sleepy" then
+                _G.PetTask = "Sleepy (PET)"
+                HandlePetAilments(1, "UseBlock", "sleepy")
+            end
+            if ailment.kind == "toilet" then
+                _G.PetTask = "Toilet (PET)"
+                HandlePetAilments(6, "UseBlock", "toilet")
+            end
+            if ailment.kind == "bored" then
+                _G.PetTask = "Bored (PET)"
+                HandlePetAilments(3, "Seat1", "bored")
+            end
+            if ailment.kind == "sick" then
+                _G.PetTask = "Sick (PET)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
+                HoldAndDrop()
+                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                HandlePetAilments(0, "Seat1", "sick", getgenv().HospitalBedID)
+            end
+            if ailment.kind == "salon" then
+                _G.PetTask = "Salon (PET)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
+                HoldAndDrop()
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.ailments[equippedPet],
+                    "salon"
+                )
+            end
+            if ailment.kind == "pizza_party" then
+                _G.PetTask = "Pizza Party (PET)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
+                HoldAndDrop()
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.ailments[equippedPet],
+                    "pizza_party"
+                )
+            end
+            if ailment.kind == "school" then
+                _G.PetTask = "School (PET)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
+                HoldAndDrop()
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.ailments[equippedPet],
+                    "school"
+                )
+            end
+            if ailment.kind == "beach_party" then
+                _G.PetTask = "Beach Party (PET)"
+                local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
+                teleportPlayerNeeds(-551, 70, -1485)
+                createPlatform("beach_party")
+                HoldAndDrop()
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.ailments[equippedPet],
+                    "beach_party"
+                )
+            end
+            if ailment.kind == "camping" then
+                _G.PetTask = "Camping (PET)"
+                local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
+                teleportPlayerNeeds(-20.9, 70, -1056.7)
+                createPlatform("camping")
+                HoldAndDrop()
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.ailments[equippedPet],
+                    "camping"
+                )
+            end
+            if ailment.kind == "pet_me" then
+                _G.PetTask = "Pet Me (PET)"
+                local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                game:GetService("ReplicatedStorage").API['AdoptAPI/FocusPet']:FireServer(ClientData.get('pet_char_wrappers')[1].char)
+                task.wait(1)
+                game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(ClientData.get('pet_char_wrappers')[1].char, {
+                        ['FocusPet'] = true,
+                        ['Petting'] = true,
+                    })
+                task.wait(1)
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AilmentsAPI/ProgressPetMeAilment"):FireServer(ClientData.get('pet_char_wrappers')[1].pet_unique)
+                game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(ClientData.get('pet_char_wrappers')[1].char, {
+                        ['FocusPet'] = false,
+                        ['Petting'] = false,
+                    })
+                HoldAndDrop()
+            end
+            if ailment.kind == "play" then
+                _G.PetTask = "Play (PET)"
+                for i = 1, 3 do -- Loop 3 times
+                    for i, v in pairs(ClientData.get("inventory").toys) do
+                        if v.id == "squeaky_bone_default" then
+                            ToyToThrow = v.unique
                         end
-                        -- Reset to default walk speed
-                        Humanoid.WalkSpeed = 16
                     end
-                    if ailment.kind == "ride" then
-                        _G.PetTask = "Ride (PET)"
-                        for i,v in pairs(ClientData.get("inventory").strollers) do
-                            if v.id == 'stroller-default' then
-                                strollerUnique = v.unique
-                            end   
-                        end
-                        
-                        local args = {
-                            [1] = strollerUnique,
-                            [2] = {
-                                ["use_sound_delay"] = true,
-                                ["equip_as_last"] = false
-                            }
-                        }
-                        
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(args))         
-            
-                        local args = {
-                            game:GetService("Players"):WaitForChild(workspace:WaitForChild("PlayerCharacters"):GetChildren()[1].Name),
-                            workspace:WaitForChild("Pets"):GetChildren()[1],
-                            game:GetService("Players").LocalPlayer.Character:WaitForChild("StrollerTool"):WaitForChild("ModelHandle"):WaitForChild("TouchToSits"):WaitForChild("TouchToSit")
-                        }
-                        
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/UseStroller"):InvokeServer(unpack(args))
-                        
-                        -- Get the player's character and HumanoidRootPart
-                        local Player = game.Players.LocalPlayer
-                        local Character = Player.Character or Player.CharacterAdded:Wait()
-                        local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-                        local Humanoid = Character:WaitForChild("Humanoid") -- Get the humanoid
-            
-                        -- Set the distance and duration for the walk
-                        local walkDistance = 1000  -- Adjust the distance as needed
-                        local walkDuration = 30    -- Adjust the time in seconds as needed
-            
-                        -- Store the initial position to walk back to it later
-                        local initialPosition = HumanoidRootPart.Position
-            
-                        -- Define the goal position (straight ahead in the character's current direction)
-                        local forwardPosition = initialPosition + (HumanoidRootPart.CFrame.LookVector * walkDistance)
-            
-                        -- Calculate speed to match walkDuration
-                        local walkSpeed = walkDistance / walkDuration
-                        Humanoid.WalkSpeed = walkSpeed -- Temporarily set the humanoid's walk speed
-            
-                        -- Move to the forward position and back twice
-                        for i = 1, 2 do
-                            Humanoid:MoveTo(forwardPosition)
-                            Humanoid.MoveToFinished:Wait() -- Wait until the humanoid reaches the target
-                            task.wait(1) -- Optional pause after reaching the position
-                            Humanoid:MoveTo(initialPosition)
-                            Humanoid.MoveToFinished:Wait() -- Wait until the humanoid returns to the initial position
-                            task.wait(1) -- Optional pause after returning
-                        end
-                        -- Reset to default walk speed
-            
-                        local argsUnequip = {
-                            [1] = strollerUnique,
-                            [2] = {
-                                ["use_sound_delay"] = true,
-                                ["equip_as_last"] = false
-                            }
-                        }
-                        
-                        game:GetService("ReplicatedStorage")
-                            :WaitForChild("API")
-                            :WaitForChild("ToolAPI/Unequip")
-                            :InvokeServer(unpack(argsUnequip))
-                            
-                        Humanoid.WalkSpeed = 16
-                        HoldAndDrop()
-                    end
-                    if ailment.kind == "mystery" then
-                        _G.PetTask = "Mystery (PET)"
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetObjectAPI/CreatePetObject"):InvokeServer("__Enum_PetObjectCreatorType_1", {["reaction_name"] = "ThrowToyReaction", ["unique_id"] = ToyToThrow})
+                    wait(7) -- Wait 4 seconds before next iteration
+                end
+                HoldAndDrop()
+            end
+            if ailment.kind == "walk" then
+                _G.PetTask = "Walk (PET)"
+                -- Get the player's character and HumanoidRootPart
+                local Player = game.Players.LocalPlayer
+                local Character = Player.Character or Player.CharacterAdded:Wait()
+                local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+                local Humanoid = Character:WaitForChild("Humanoid") -- Get the humanoid
+                -- Set the distance and duration for the walk
+                local walkDistance = 1000  -- Adjust the distance as needed
+                local walkDuration = 30    -- Adjust the time in seconds as needed
+                -- Store the initial position to walk back to it later
+                local initialPosition = HumanoidRootPart.Position
+                -- Define the goal position (straight ahead in the character's current direction)
+                local forwardPosition = initialPosition + (HumanoidRootPart.CFrame.LookVector * walkDistance)
+                -- Calculate speed to match walkDuration
+                local walkSpeed = walkDistance / walkDuration
+                Humanoid.WalkSpeed = walkSpeed -- Temporarily set the humanoid's walk speed
+                -- Move to the forward position and back twice
+                for i = 1, 2 do
+                    Humanoid:MoveTo(forwardPosition)
+                    Humanoid.MoveToFinished:Wait() -- Wait until the humanoid reaches the target
+                    task.wait(1) -- Optional pause after reaching the position
+
+                    Humanoid:MoveTo(initialPosition)
+                    Humanoid.MoveToFinished:Wait() -- Wait until the humanoid returns to the initial position
+                    task.wait(1) -- Optional pause after returning
+                end
+                -- Reset to default walk speed
+                Humanoid.WalkSpeed = 16
+            end
+            if ailment.kind == "ride" then
+                _G.PetTask = "Ride (PET)"
+                for i,v in pairs(ClientData.get("inventory").strollers) do
+                    if v.id == 'stroller-default' then
+                        strollerUnique = v.unique
+                    end   
+                end
+                
+                local args = {
+                    [1] = strollerUnique,
+                    [2] = {
+                        ["use_sound_delay"] = true,
+                        ["equip_as_last"] = false
+                    }
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(args))         
+    
+                local args = {
+                    game:GetService("Players"):WaitForChild(workspace:WaitForChild("PlayerCharacters"):GetChildren()[1].Name),
+                    workspace:WaitForChild("Pets"):GetChildren()[1],
+                    game:GetService("Players").LocalPlayer.Character:WaitForChild("StrollerTool"):WaitForChild("ModelHandle"):WaitForChild("TouchToSits"):WaitForChild("TouchToSit")
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/UseStroller"):InvokeServer(unpack(args))
+                
+                -- Get the player's character and HumanoidRootPart
+                local Player = game.Players.LocalPlayer
+                local Character = Player.Character or Player.CharacterAdded:Wait()
+                local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+                local Humanoid = Character:WaitForChild("Humanoid") -- Get the humanoid
+    
+                -- Set the distance and duration for the walk
+                local walkDistance = 1000  -- Adjust the distance as needed
+                local walkDuration = 30    -- Adjust the time in seconds as needed
+    
+                -- Store the initial position to walk back to it later
+                local initialPosition = HumanoidRootPart.Position
+    
+                -- Define the goal position (straight ahead in the character's current direction)
+                local forwardPosition = initialPosition + (HumanoidRootPart.CFrame.LookVector * walkDistance)
+    
+                -- Calculate speed to match walkDuration
+                local walkSpeed = walkDistance / walkDuration
+                Humanoid.WalkSpeed = walkSpeed -- Temporarily set the humanoid's walk speed
+    
+                -- Move to the forward position and back twice
+                for i = 1, 2 do
+                    Humanoid:MoveTo(forwardPosition)
+                    Humanoid.MoveToFinished:Wait() -- Wait until the humanoid reaches the target
+                    task.wait(1) -- Optional pause after reaching the position
+                    Humanoid:MoveTo(initialPosition)
+                    Humanoid.MoveToFinished:Wait() -- Wait until the humanoid returns to the initial position
+                    task.wait(1) -- Optional pause after returning
+                end
+                -- Reset to default walk speed
+    
+                local argsUnequip = {
+                    [1] = strollerUnique,
+                    [2] = {
+                        ["use_sound_delay"] = true,
+                        ["equip_as_last"] = false
+                    }
+                }
+                
+                game:GetService("ReplicatedStorage")
+                    :WaitForChild("API")
+                    :WaitForChild("ToolAPI/Unequip")
+                    :InvokeServer(unpack(argsUnequip))
+                    
+                Humanoid.WalkSpeed = 16
+                HoldAndDrop()
+            end
+            if ailment.kind == "mystery" then
+                _G.PetTask = "Mystery (PET)"
+                local args = {
+                    ClientData.get("pet_char_wrappers")[1]["char"],
+                    {
+                        FocusPet = true
+                    }
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/ReplicateActivePerformances"):FireServer(unpack(args))
+                for i = 1, 3 do
+                    -- loop through all actions
+                    for _ , action in ipairs(actions) do
                         local args = {
                             ClientData.get("pet_char_wrappers")[1]["char"],
                             {
@@ -1384,255 +1442,246 @@ task.spawn(function()
                             }
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/ReplicateActivePerformances"):FireServer(unpack(args))
-                        for i = 1, 3 do
-                            -- loop through all actions
-                            for _ , action in ipairs(actions) do
-                                local args = {
-                                    ClientData.get("pet_char_wrappers")[1]["char"],
-                                    {
-                                        FocusPet = true
-                                    }
+                        
+                        task.spawn(function() 
+                            local args = {
+                                ClientData.get("pet_char_wrappers")[1]["char"],
+                                {
+                                    FocusPet = true
                                 }
-                                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/ReplicateActivePerformances"):FireServer(unpack(args))
-                                
-                                task.spawn(function() 
-                                    local args = {
-                                        ClientData.get("pet_char_wrappers")[1]["char"],
-                                        {
-                                            FocusPet = true
-                                        }
-                                    }
-                                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/ReplicateActivePerformances"):FireServer(unpack(args))
-                                    local args = {
-                                        ClientData.get("pet_char_wrappers")[1].pet_unique,
-                                        "mystery",
-                                        i,
-                                        action
-                                    }
-                                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AilmentsAPI/ChooseMysteryAilment"):FireServer(unpack(args))
-                                end)
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/ReplicateActivePerformances"):FireServer(unpack(args))
+                            local args = {
+                                ClientData.get("pet_char_wrappers")[1].pet_unique,
+                                "mystery",
+                                i,
+                                action
+                            }
+                            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AilmentsAPI/ChooseMysteryAilment"):FireServer(unpack(args))
+                        end)
 
-                                dbg(ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique .. " " .. i .. " " .. action)
-                                task.wait(3)
-                                if not HasAilment(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet], "mystery") then
-                                    break
-                                end
-                            end
-                            if not HasAilment(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet], "mystery") then
-                                break
-                            end
+                        dbg(ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique .. " " .. i .. " " .. action)
+                        task.wait(3)
+                        if not HasAilment(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet], "mystery") then
+                            break
                         end
-                        HoldAndDrop()
                     end
-                    
-                end
-            end
-
-            if babyAilments then
-                for _, ailment in pairs(babyAilments) do
-                    if ailment.kind == "dirty" then
-                        _G.PetTask = "Dirty (BABY)"
-                        task.spawn(function()
-                            game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[2].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
-                        end)
-            
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "dirty"
-                        )
-            
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
-                    end
-                    if ailment.kind == "sleepy" then
-                        _G.PetTask = "Sleepy (BABY)"
-                        task.spawn(function()
-                            game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[1].furnID,"UseBlock",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
-                        end)
-            
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "sleepy"
-                        )
-            
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
-                    end
-                    if ailment.kind == "bored" then
-                        _G.PetTask = "Bored (BABY)"
-                        task.spawn(function()
-                            game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[3].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
-                        end)
-            
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "bored"
-                        )
-            
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
-                    end
-                    if ailment.kind == "hungry" then
-                        _G.PetTask = "Hungry (BABY)"
-                        if getCurrentMoney() >= 5 then
-                            buyItem("food", "apple", 1)
-                        end
-                        useItem(getFoodID("apple"), 3)
-                    end
-                    if ailment.kind == "thirsty" then
-                        _G.PetTask = "Thristy (BABY)"
-                        if getCurrentMoney() >= 5 then
-                            buyItem("food", "tea", 1)
-                        end
-                        useItem(getFoodID("tea"), 6)
-                    end
-                    if ailment.kind == "sick" then
-                        _G.PetTask = "Sick (BABY)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
-                        getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
-
-                        task.spawn(function()
-                            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(getgenv().HospitalBedID, "Seat1", {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, ClientData.get("char_wrapper")["char"])
-                        end)
-
-                        local t = 0
-                        repeat
-                            task.wait(1)
-                            t = t + 1
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "sick"
-                        ) or t > 60
-            
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
-                    end
-                    if ailment.kind == "salon" then
-                        _G.PetTask = "Salon (BABY)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "salon"
-                        )
-                    end
-                    if ailment.kind == "pizza_party" then
-                        _G.PetTask = "Pizza Party (BABY)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "pizza_party"
-                        )
-                    end
-                    if ailment.kind == "school" then
-                        _G.PetTask = "School (BABY)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "school"
-                        )
-                    end
-                    if ailment.kind == "beach_party" then
-                        _G.PetTask = "Beach Party (BABY)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
-                        local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
-                        teleportPlayerNeeds(-551, 70, -1485)
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "beach_party"
-                        )
-                    end
-                    if ailment.kind == "camping" then
-                        _G.PetTask = "Camping (BABY)"
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
-                        local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
-                        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
-                        teleportPlayerNeeds(-20.9, 70, -1056.7)
-                        repeat
-                            task.wait(1)
-                        until not HasAilment(
-                            require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                                .get_data()[game.Players.LocalPlayer.Name]
-                                .ailments_manager.baby_ailments,
-                            "camping"
-                        )
+                    if not HasAilment(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet], "mystery") then
+                        break
                     end
                 end
+                HoldAndDrop()
             end
+            
+        end
+    end
+
+    if babyAilments then
+        for _, ailment in pairs(babyAilments) do
+            if ailment.kind == "dirty" then
+                _G.PetTask = "Dirty (BABY)"
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[2].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
+                end)
+    
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "dirty"
+                )
+    
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+            end
+            if ailment.kind == "sleepy" then
+                _G.PetTask = "Sleepy (BABY)"
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[1].furnID,"UseBlock",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
+                end)
+    
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "sleepy"
+                )
+    
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+            end
+            if ailment.kind == "bored" then
+                _G.PetTask = "Bored (BABY)"
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[3].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
+                end)
+    
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "bored"
+                )
+    
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+            end
+            if ailment.kind == "hungry" then
+                _G.PetTask = "Hungry (BABY)"
+                if getCurrentMoney() >= 5 then
+                    buyItem("food", "apple", 1)
+                end
+                useItem(getFoodID("apple"), 3)
+            end
+            if ailment.kind == "thirsty" then
+                _G.PetTask = "Thristy (BABY)"
+                if getCurrentMoney() >= 5 then
+                    buyItem("food", "tea", 1)
+                end
+                useItem(getFoodID("tea"), 6)
+            end
+            if ailment.kind == "sick" then
+                _G.PetTask = "Sick (BABY)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
+                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(getgenv().HospitalBedID, "Seat1", {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, ClientData.get("char_wrapper")["char"])
+                end)
+
+                local t = 0
+                repeat
+                    task.wait(1)
+                    t = t + 1
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "sick"
+                ) or t > 60
+    
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+            end
+            if ailment.kind == "salon" then
+                _G.PetTask = "Salon (BABY)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "salon"
+                )
+            end
+            if ailment.kind == "pizza_party" then
+                _G.PetTask = "Pizza Party (BABY)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "pizza_party"
+                )
+            end
+            if ailment.kind == "school" then
+                _G.PetTask = "School (BABY)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "school"
+                )
+            end
+            if ailment.kind == "beach_party" then
+                _G.PetTask = "Beach Party (BABY)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
+                local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
+                teleportPlayerNeeds(-551, 70, -1485)
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "beach_party"
+                )
+            end
+            if ailment.kind == "camping" then
+                _G.PetTask = "Camping (BABY)"
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
+                local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
+                teleportPlayerNeeds(-20.9, 70, -1056.7)
+                repeat
+                    task.wait(1)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.baby_ailments,
+                    "camping"
+                )
+            end
+        end
+    end
+
+end
+
+task.spawn(function()
+    while getgenv().HiraXRey.PetFarm do
+        if not _G.FarmPause then
+            dbg('loop again')
+            MainFarm()
         end
         if getgenv().HiraXRey.EventFarm then
             doEventTasks()
         end
-        local isFinishedLure, BasicLure
+        AutoLure()
+    end
+end)
 
-        local success = pcall(function()
-            local data = ClientData.get_data()[Player.Name]
-            BasicLure = data.lures_2023_lure_manager.lures_map.BasicLure
-            isFinishedLure = BasicLure.finished
-        end)
+local TIMEOUT = 7 * 60 -- 7 minutes in seconds
+local CHECK_INTERVAL = 10 -- check every 10 seconds
+local lastMoney = getCurrentMoney()
+local lastChangeTime = tick()
 
-        if not success then
-            warn("BasicLure not found")
-        end
-        if isFinishedLure then
-            local args = {
-                game:GetService("Players").LocalPlayer,
-                furnitureList[7].furnID,
-                "UseBlock",
-                false,
-                game:GetService("Players").LocalPlayer.Character
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateFurniture"):InvokeServer(unpack(args))
-        end
-        if not BasicLure then
-            for x, y in pairs(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].inventory.food) do
-                if y.kind == getgenv().HiraXRey.LureBait then
-                    -- put bait
-                    local args = {
-                        game:GetService("Players").LocalPlayer,
-                        furnitureList[7].furnID,                          
-                        "UseBlock",
-                        {
-                            bait_unique = x
-                        },
-                        game:GetService("Players").LocalPlayer.Character
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateFurniture"):InvokeServer(unpack(args))
-                    dbg("found it! " .. x .. y.kind)
-                    break
+task.spawn(function()
+    while true do
+        task.wait(CHECK_INTERVAL)
+
+        local currentMoney = getCurrentMoney()
+
+        if currentMoney ~= nil then
+            if currentMoney ~= lastMoney then
+                -- Money changed, reset the timer
+                lastMoney = currentMoney
+                lastChangeTime = tick()
+            else
+                -- No change, check if timeout exceeded
+                local elapsed = tick() - lastChangeTime
+                if elapsed >= TIMEOUT then
+                    -- warn("[AFK Kicker] No money change detected for 7 minutes. Kicking...")
+                    -- Player:Kick("Kicked: No activity detected for 7 minutes.")
+                    _G.FarmPause = false
+                    task.wait(120)
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
+                    task.wait(10)
+                    _G.FarmPause = true
                 end
             end
         end
-        task.wait(10)
     end
-
 end)
+
 
 local PetFarmGUI = Instance.new("ScreenGui")
 local UIFrame = Instance.new("Frame")
