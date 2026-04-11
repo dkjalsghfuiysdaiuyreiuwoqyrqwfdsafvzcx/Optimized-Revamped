@@ -1,4 +1,4 @@
--- 12:36
+-- 5:18
 local router = nil
 
 repeat
@@ -23,7 +23,7 @@ end
 table.foreach(debug.getupvalue(router.get_remote_from_cache, 1), rename)
 
 local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
+local Player = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 local petToEquip
 --------------------------------------------------------------------------------------------------------------------------
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,15 +35,19 @@ local ConvertedPetNameCache = {}
 local ConvertedPetKindToNameCache = {}
 local ConvertedPetKindToNameCacheHTTP = {}
 
-local CheckBoxDialog = game:GetService("Players").LocalPlayer.PlayerGui.DialogApp.Dialog.CheckboxDialog
-local playerGui = game:GetService("Players").LocalPlayer.PlayerGui
+local CheckBoxDialog
+pcall(function()
+    CheckBoxDialog = Player:WaitForChild("PlayerGui"):WaitForChild("DialogApp"):WaitForChild("Dialog"):WaitForChild("CheckboxDialog")
+end)
+local playerGui = Player:WaitForChild("PlayerGui")
 local ignore = {ButtonGUI = true, PetFarmGUI = true}
 local HttpService       = game:GetService("HttpService")
-local ContentPacks = game:GetService("ReplicatedStorage").SharedModules.ContentPacks
 local AddPetRemote = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("IdleProgressionAPI/AddPet")
 local RemovePetRemote = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("IdleProgressionAPI/RemovePet")
 local CommitRemote = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("IdleProgressionAPI/CommitAllProgression")
 local DoNeonFusion = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/DoNeonFusion")
+local ToyToThrow
+local strollerUnique 
 ---------------------------------------------------------------------------------------------------------------------------
 _G.PetTask = "none"
 _G.FarmPause = false
@@ -59,6 +63,70 @@ local function dbg(msg)
    if debugMode then
         print(msg)
    end
+end
+
+local function safeGetPlayerData()
+    local ok, result = pcall(function()
+        local data = ClientData.get_data()
+        return data and data[Player.Name]
+    end)
+
+    if ok then
+        return result
+    end
+    return nil
+end
+
+local function safeGetEquippedPetUnique()
+    local ok, result = pcall(function()
+        local data = ClientData.get_data()
+        return data[Player.Name].equip_manager.pets[1].unique
+    end)
+
+    if ok then
+        return result
+    end
+    return nil
+end
+
+local function safeGetPetChar()
+    local ok, result = pcall(function()
+        local wrappers = ClientData.get("pet_char_wrappers")
+        return wrappers and wrappers[1] and wrappers[1].char
+    end)
+
+    return ok and result or nil
+end
+
+local function safeGetInventoryFood()
+    local ok, result = pcall(function()
+        return ClientData.get("inventory").food
+    end)
+
+    if ok then
+        return result
+    end
+    return nil
+end
+
+local function safeGetInventoryPets()
+    local ok, result = pcall(function()
+        local data = ClientData.get_data()
+        return data and data[Player.Name] and data[Player.Name].inventory and data[Player.Name].inventory.pets
+    end)
+
+    return ok and result or nil
+end
+
+local function safeGetPetAilments(equippedPet)
+    local ok, result = pcall(function()
+        return ClientData.get_data()[Player.Name].ailments_manager.ailments[equippedPet]
+    end)
+
+    if ok then
+        return result
+    end
+    return nil
 end
 
 -- auto play
@@ -161,7 +229,9 @@ local function optimizer()
             v:Destroy()
         end
     end
-    workspace.CurrentCamera.FieldOfView = 40
+    if workspace.CurrentCamera then
+        workspace.CurrentCamera.FieldOfView = 40
+    end
 
     -- remove all other player characters
     for _, player in ipairs(Players:GetPlayers()) do
@@ -172,7 +242,7 @@ local function optimizer()
 
     -- also remove them if they spawn later
     Players.PlayerAdded:Connect(function(player)
-        if player == LocalPlayer then return end
+        if player == Player then return end
 
         player.CharacterAdded:Connect(function(char)
             task.wait(0.5)
@@ -319,7 +389,7 @@ end
 
 local function equipPet()
     local ok, unique = pcall(function()
-        return ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
+        return safeGetEquippedPetUnique()
     end)
 
     if not ok or not unique then
@@ -377,27 +447,33 @@ end
 
 local function HoldAndDrop()
     equipPet()
-    local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-    local success, err = pcall(function()
-        local char = tostring(ClientData.get('pet_char_wrappers')[1].char)
-        dbg('holding pet ' .. char)
-        local args = {
-            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(unpack(args))
-        task.wait(1)
-        dbg('dropping pet ' .. char)
-        local args = {
-            ClientData.get('pet_char_wrappers')[1].char  -- keep original Instance for FireServer
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(unpack(args))
-    end)
 
-    if not success then
-        warn("HoldAndDrop error: " .. tostring(err) .. " | retrying in 1s...")
+    for attempt = 1, 5 do
+        local success, err = pcall(function()
+            local petChar = safeGetPetChar()
+            if not petChar then
+                error("pet_char_wrappers[1].char is nil")
+            end
+
+            dbg("holding pet " .. tostring(petChar))
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/HoldBaby"):FireServer(petChar)
+
+            task.wait(1)
+
+            dbg("dropping pet " .. tostring(petChar))
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/EjectBaby"):FireServer(petChar)
+        end)
+
+        if success then
+            return true
+        end
+
+        warn("HoldAndDrop error: " .. tostring(err) .. " | retry " .. attempt .. "/5")
         task.wait(1)
-        equipPet()
     end
+
+    warn("HoldAndDrop failed after 5 attempts")
+    return false
 end
 
 local furnitureList = {
@@ -484,7 +560,8 @@ end
 
 
 local function GetBuildingFurniture(furnitureName)
-    local furnitureFolder = workspace.HouseInteriors.furniture
+    local houseInteriors = workspace:FindFirstChild("HouseInteriors")
+    local furnitureFolder = houseInteriors and houseInteriors:FindFirstChild("furniture")
 
     if furnitureFolder then
         for _, child in pairs(furnitureFolder:GetChildren()) do
@@ -513,7 +590,7 @@ local function buyFurnitures()
     startingMoney = getCurrentMoney()
 
     for _, item in ipairs(furnitureList) do
-        if not item.furnID and startingMoney > item.minMoney then
+        if startingMoney and not item.furnID and startingMoney > item.minMoney then
             game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/BuyFurnitures"):InvokeServer({
                 [1] = {
                     properties = {
@@ -561,6 +638,7 @@ local function getEquippedPetUnique(data)
     return data.equip_manager
         and data.equip_manager.pets
         and data.equip_manager.pets[1]
+        and data.equip_manager.pets[1].unique
 end
 
 local function buildDesiredPets(data, priorityKinds)
@@ -664,14 +742,16 @@ end
 
 ---------------------------------------------------------------------------------------------------------------------------------------------
 -- AutoFuse FUNCTIONS
-local function getPets()
-    return ClientData.get_data()[Player.Name].inventory.pets
-end
 
 local function findFusionBatch(wantNeon)
     local groupedPets = {}
 
-    for _, pet in next, getPets() do
+    local pets = safeGetInventoryPets()
+    if not pets then
+        return nil, nil
+    end
+    
+    for _, pet in next, pets do
         local props = pet.properties
 
         if props and props.age == 6 and not props.mega_neon then
@@ -797,7 +877,7 @@ local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitu
     dbg("doing " .. petTask .. " Task")
     equipPet()
     ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-    local equippedPet =  ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
+    local equippedPet =  safeGetEquippedPetUnique()
     if specialFurnitureNumber then
         dbg("Running Special furniture")
         task.spawn(function()
@@ -1062,7 +1142,12 @@ end
 
 if getgenv().HiraXRey.SyncStats then
     task.spawn(function()
-        local inventoryPets = ClientData.get_data()[Player.Name].inventory.pets
+        local inventoryPets = safeGetInventoryPets()
+        if inventoryPets then
+            -- use inventoryPets
+        else
+            warn("inventory.pets not available")
+        end
         local petGroups = {}
 
         for _, pet in pairs(inventoryPets) do
@@ -1207,11 +1292,11 @@ local function MainFarm()
     
     _G.PetTask = "None"
     teleportPlayerNeeds(0, 500, 0)
-    if ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique ~= _G.SessionMainPetUnique then
+    if safeGetEquippedPetUnique() ~= _G.SessionMainPetUnique then
         equipPet()
     end
     ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-    local equippedPet =  ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique
+    local equippedPet =  safeGetEquippedPetUnique()
     local babyAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.baby_ailments
     local petAilments = ClientData.get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet]
 
@@ -1323,15 +1408,15 @@ local function MainFarm()
             if ailment.kind == "pet_me" then
                 _G.PetTask = "Pet Me (PET)"
                 local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
-                game:GetService("ReplicatedStorage").API['AdoptAPI/FocusPet']:FireServer(ClientData.get('pet_char_wrappers')[1].char)
+                game:GetService("ReplicatedStorage").API['AdoptAPI/FocusPet']:FireServer(safeGetPetChar())
                 task.wait(1)
-                game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(ClientData.get('pet_char_wrappers')[1].char, {
+                game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(safeGetPetChar(), {
                         ['FocusPet'] = true,
                         ['Petting'] = true,
                     })
                 task.wait(1)
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AilmentsAPI/ProgressPetMeAilment"):FireServer(ClientData.get('pet_char_wrappers')[1].pet_unique)
-                game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(ClientData.get('pet_char_wrappers')[1].char, {
+                game:GetService("ReplicatedStorage").API['PetAPI/ReplicateActivePerformances']:FireServer(safeGetPetChar(), {
                         ['FocusPet'] = false,
                         ['Petting'] = false,
                     })
@@ -1490,7 +1575,7 @@ local function MainFarm()
                             game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AilmentsAPI/ChooseMysteryAilment"):FireServer(unpack(args))
                         end)
 
-                        dbg(ClientData.get_data()[game.Players.LocalPlayer.Name].equip_manager.pets[1].unique .. " " .. i .. " " .. action)
+                        dbg(safeGetEquippedPetUnique() .. " " .. i .. " " .. action)
                         task.wait(3)
                         if not HasAilment(require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].ailments_manager.ailments[equippedPet], "mystery") then
                             break
@@ -1575,7 +1660,10 @@ local function MainFarm()
             end
             if ailment.kind == "sick" then
                 _G.PetTask = "Sick (BABY)"
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
+                local remote = game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation")
+                if remote then
+                    remote:FireServer("Hospital")
+                end
                 getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
 
                 task.spawn(function()
@@ -1668,14 +1756,23 @@ end
 
 task.spawn(function()
     while getgenv().HiraXRey.PetFarm do
-        if not _G.FarmPause then
-            dbg('loop again')
-            MainFarm()
+        local ok, err = xpcall(function()
+            if not _G.FarmPause then
+                dbg("loop again")
+                MainFarm()
+            end
+
+            if getgenv().HiraXRey.EventFarm then
+                doEventTasks()
+            end
+
+            AutoLure()
+        end, debug.traceback)
+
+        if not ok then
+            warn("MAIN LOOP ERROR:\n" .. tostring(err))
+            task.wait(2)
         end
-        if getgenv().HiraXRey.EventFarm then
-            doEventTasks()
-        end
-        AutoLure()
     end
 end)
 
@@ -1714,7 +1811,10 @@ task.spawn(function()
                     }
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Unequip"):InvokeServer(unpack(args))
                     equipPet()
+                    print("farm paused true")
                     _G.FarmPause = true
+                    warn("[AFK CHECK] elapsed = " .. math.floor(elapsed) .. " seconds")
+                    warn("[AFK CHECK] current pause = " .. tostring(_G.FarmPause))
                 end
             end
         end
@@ -2198,7 +2298,7 @@ local function updateStats()
     PotionPHolder.Text = tostring(currentPotionCount) .. " (+" .. tostring(potionChange) .. ")"
     TimePHolder.Text = formattedTime
     TaskPHolder.Text = tostring(_G.PetTask or "None")
-    PetPHolder.Text = tostring(ClientData.get('pet_char_wrappers')[1].char or "None") -- Ensure `getgenv().petToEquipName` is set elsewhere in your script
+    PetPHolder.Text = tostring(safeGetPetChar() or "None") -- Ensure `getgenv().petToEquipName` is set elsewhere in your script
     PetPenPHolder.Text = tostring(formattedPetPen or "Loading...")
 end
 
