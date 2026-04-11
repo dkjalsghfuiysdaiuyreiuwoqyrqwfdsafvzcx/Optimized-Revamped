@@ -1,4 +1,4 @@
--- 10:11
+-- 10:19
 local router = nil
 
 repeat
@@ -912,7 +912,7 @@ local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitu
     
     if specialFurnitureNumber == nil and furnitureNumber ~= 0 then
         dbg("Running normal furniture")
-        game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+        
         task.wait(1)
         task.spawn(function()
             game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[furnitureNumber].furnID,usage,{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.Head.Position + Vector3.new(0, .5, 0))},safeGetPetChar())
@@ -1377,7 +1377,7 @@ local function MainFarm()
                         .ailments_manager.ailments[equippedPet],
                     "salon"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "pizza_party" then
@@ -1396,7 +1396,7 @@ local function MainFarm()
                         .ailments_manager.ailments[equippedPet],
                     "pizza_party"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "school" then
@@ -1415,7 +1415,7 @@ local function MainFarm()
                         .ailments_manager.ailments[equippedPet],
                     "school"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "beach_party" then
@@ -1437,7 +1437,7 @@ local function MainFarm()
                         .ailments_manager.ailments[equippedPet],
                     "beach_party"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "camping" then
@@ -1459,7 +1459,7 @@ local function MainFarm()
                         .ailments_manager.ailments[equippedPet],
                     "camping"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "pet_me" then
@@ -1659,7 +1659,7 @@ local function MainFarm()
                 _G.PetTask = "Dirty (BABY)"
                 dbg(_G.PetTask)
                 task.spawn(function()
-                    game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                    
                     task.wait(1)
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[2].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
@@ -1683,7 +1683,7 @@ local function MainFarm()
                 _G.PetTask = "Sleepy (BABY)"
                 dbg(_G.PetTask)
                 task.spawn(function()
-                    game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                    
                     task.wait(1)
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[1].furnID,"UseBlock",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
@@ -1707,7 +1707,7 @@ local function MainFarm()
                 _G.PetTask = "Bored (BABY)"
                 dbg(_G.PetTask)
                 task.spawn(function()
-                    game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                    
                     task.wait(1)
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[3].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
@@ -1786,7 +1786,7 @@ local function MainFarm()
                         .ailments_manager.baby_ailments,
                     "salon"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "pizza_party" then
@@ -1804,7 +1804,7 @@ local function MainFarm()
                         .ailments_manager.baby_ailments,
                     "pizza_party"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "school" then
@@ -1822,7 +1822,7 @@ local function MainFarm()
                         .ailments_manager.baby_ailments,
                     "school"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "beach_party" then
@@ -1843,7 +1843,7 @@ local function MainFarm()
                         .ailments_manager.baby_ailments,
                     "beach_party"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
             if ailment.kind == "camping" then
@@ -1864,7 +1864,7 @@ local function MainFarm()
                         .ailments_manager.baby_ailments,
                     "camping"
                 ) or t > 60
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
+                
                 task.wait(1)
             end
         end
