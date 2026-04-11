@@ -1,4 +1,4 @@
--- 7:05
+-- 7:29
 local router = nil
 
 repeat
@@ -265,13 +265,7 @@ local function optimizer()
     end
 end
 local function getCurrentMoney()
-    local ok, result = pcall(function()
-        return require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].money
-    end)
-    if ok then
-        return result
-    end
-    return nil
+    return require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].money
 end
 
 
@@ -1638,6 +1632,7 @@ local function MainFarm()
                 ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+                game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
             end
             if ailment.kind == "sleepy" then
                 _G.PetTask = "Sleepy (BABY)"
@@ -1659,6 +1654,7 @@ local function MainFarm()
                 ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+                game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
             end
             if ailment.kind == "bored" then
                 _G.PetTask = "Bored (BABY)"
@@ -1680,6 +1676,7 @@ local function MainFarm()
                 ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+                game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
             end
             if ailment.kind == "hungry" then
                 _G.PetTask = "Hungry (BABY)"
@@ -1723,6 +1720,7 @@ local function MainFarm()
                 ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
+                game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
             end
             if ailment.kind == "salon" then
                 _G.PetTask = "Salon (BABY)"
