@@ -1,4 +1,4 @@
--- 2:35
+-- 3:21
 local router = nil
 
 repeat
@@ -908,7 +908,7 @@ local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitu
             .get_data()[game.Players.LocalPlayer.Name]
             .ailments_manager.ailments[equippedPet],
         petTask
-    ) or t > 60
+    ) or t > 25
 
     HoldAndDrop()
     -- local args = {
@@ -1313,38 +1313,46 @@ local function MainFarm()
     if petAilments then
         for _, ailment in pairs(petAilments) do
             if ailment.kind == "hungry" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Hungry (PET)"
-                HandlePetAilments(5, "UseBlock", "hungry", 0, "Normal")
+                HandlePetAilments(5, "UseBlock", "hungry")
 
             end
             if ailment.kind == "thirsty" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Thristy (PET)"
-                HandlePetAilments(4, "UseBlock", "thirsty", 0, "Normal")            
+                HandlePetAilments(4, "UseBlock", "thirsty")            
             end
             if ailment.kind == "dirty" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Dirty (PET)"
-                HandlePetAilments(2, "Seat1", "dirty", 0, "Normal")
+                HandlePetAilments(2, "Seat1", "dirty")
             end
             if ailment.kind == "sleepy" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Sleepy (PET)"
-                HandlePetAilments(1, "UseBlock", "sleepy", 0, "Normal")
+                HandlePetAilments(1, "UseBlock", "sleepy")
             end
             if ailment.kind == "toilet" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Toilet (PET)"
-                HandlePetAilments(6, "UseBlock", "toilet", 0, "Normal")
+                HandlePetAilments(6, "UseBlock", "toilet")
             end
             if ailment.kind == "bored" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Bored (PET)"
-                HandlePetAilments(3, "Seat1", "bored", 0, "Normal")
+                HandlePetAilments(3, "Seat1", "bored")
             end
             if ailment.kind == "sick" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Sick (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
                 HoldAndDrop()
                 getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
-                HandlePetAilments(0, "Seat1", "sick", getgenv().HospitalBedID, "Special")
+                HandlePetAilments(0, "Seat1", "sick", getgenv().HospitalBedID)
             end
             if ailment.kind == "salon" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Salon (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
                 HoldAndDrop()
@@ -1358,6 +1366,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "pizza_party" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Pizza Party (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
                 HoldAndDrop()
@@ -1371,6 +1380,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "school" then
+                if _G.FarmPause then break end
                 _G.PetTask = "School (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 HoldAndDrop()
@@ -1384,6 +1394,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "beach_party" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Beach Party (PET)"
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
@@ -1400,6 +1411,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "camping" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Camping (PET)"
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
@@ -1416,6 +1428,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "pet_me" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Pet Me (PET)"
                 local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                 game:GetService("ReplicatedStorage").API['AdoptAPI/FocusPet']:FireServer(safeGetPetChar())
@@ -1433,6 +1446,7 @@ local function MainFarm()
                 HoldAndDrop()
             end
             if ailment.kind == "play" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Play (PET)"
                 for i = 1, 3 do -- Loop 3 times
                     for i, v in pairs(ClientData.get("inventory").toys) do
@@ -1446,6 +1460,7 @@ local function MainFarm()
                 HoldAndDrop()
             end
             if ailment.kind == "walk" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Walk (PET)"
                 -- Get the player's character and HumanoidRootPart
                 local Player = game.Players.LocalPlayer
@@ -1476,6 +1491,7 @@ local function MainFarm()
                 Humanoid.WalkSpeed = 16
             end
             if ailment.kind == "ride" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Ride (PET)"
                 for i,v in pairs(ClientData.get("inventory").strollers) do
                     if v.id == 'stroller-default' then
@@ -1549,6 +1565,7 @@ local function MainFarm()
                 HoldAndDrop()
             end
             if ailment.kind == "mystery" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Mystery (PET)"
                 local args = {
                     ClientData.get("pet_char_wrappers")[1]["char"],
@@ -1604,6 +1621,7 @@ local function MainFarm()
     if babyAilments then
         for _, ailment in pairs(babyAilments) do
             if ailment.kind == "dirty" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Dirty (BABY)"
                 task.spawn(function()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[2].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
@@ -1621,6 +1639,7 @@ local function MainFarm()
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
             if ailment.kind == "sleepy" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Sleepy (BABY)"
                 task.spawn(function()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[1].furnID,"UseBlock",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
@@ -1638,6 +1657,7 @@ local function MainFarm()
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
             if ailment.kind == "bored" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Bored (BABY)"
                 task.spawn(function()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[3].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
@@ -1655,6 +1675,7 @@ local function MainFarm()
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
             if ailment.kind == "hungry" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Hungry (BABY)"
                 if getCurrentMoney() >= 5 then
                     buyItem("food", "apple", 1)
@@ -1662,6 +1683,7 @@ local function MainFarm()
                 useItem(getFoodID("apple"), 3)
             end
             if ailment.kind == "thirsty" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Thristy (BABY)"
                 if getCurrentMoney() >= 5 then
                     buyItem("food", "tea", 1)
@@ -1669,6 +1691,7 @@ local function MainFarm()
                 useItem(getFoodID("tea"), 6)
             end
             if ailment.kind == "sick" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Sick (BABY)"
                 local remote = game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation")
                 if remote then
@@ -1694,6 +1717,7 @@ local function MainFarm()
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
             if ailment.kind == "salon" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Salon (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
                 repeat
@@ -1706,6 +1730,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "pizza_party" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Pizza Party (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
                 repeat
@@ -1718,6 +1743,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "school" then
+                if _G.FarmPause then break end
                 _G.PetTask = "School (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 repeat
@@ -1730,6 +1756,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "beach_party" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Beach Party (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
@@ -1745,6 +1772,7 @@ local function MainFarm()
                 )
             end
             if ailment.kind == "camping" then
+                if _G.FarmPause then break end
                 _G.PetTask = "Camping (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
@@ -1809,9 +1837,11 @@ task.spawn(function()
                     -- warn("[AFK Kicker] No money change detected for 7 minutes. Kicking...")
                     -- Player:Kick("Kicked: No activity detected for 7 minutes.")
                     _G.FarmPause = true
-                    task.wait(120)
-                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
+                    print("farm paused true")
                     task.wait(10)
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
+                    task.wait(120)
+
                     local args = {
                         _G.SessionMainPetUnique,
                         {
@@ -1821,8 +1851,8 @@ task.spawn(function()
                     }
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Unequip"):InvokeServer(unpack(args))
                     equipPet()
-                    print("farm paused true")
                     _G.FarmPause = false
+                    dbg("Farm paused false")
                     warn("[AFK CHECK] elapsed = " .. math.floor(elapsed) .. " seconds")
                     warn("[AFK CHECK] current pause = " .. tostring(_G.FarmPause))
                 end
