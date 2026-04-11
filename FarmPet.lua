@@ -1,4 +1,4 @@
--- 6:11
+-- 6:35
 local router = nil
 
 repeat
@@ -1599,14 +1599,16 @@ local function MainFarm()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[2].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
     
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "dirty"
-                )
+                ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
@@ -1616,14 +1618,16 @@ local function MainFarm()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[1].furnID,"UseBlock",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
     
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "sleepy"
-                )
+                ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
@@ -1633,14 +1637,16 @@ local function MainFarm()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[3].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
     
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "bored"
-                )
+                ) or t > 60
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
@@ -1686,38 +1692,44 @@ local function MainFarm()
             if ailment.kind == "salon" then
                 _G.PetTask = "Salon (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "salon"
-                )
+                ) or t > 60
             end
             if ailment.kind == "pizza_party" then
                 _G.PetTask = "Pizza Party (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "pizza_party"
-                )
+                ) or t > 60
             end
             if ailment.kind == "school" then
                 _G.PetTask = "School (BABY)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "school"
-                )
+                ) or t > 60
             end
             if ailment.kind == "beach_party" then
                 _G.PetTask = "Beach Party (BABY)"
@@ -1725,14 +1737,16 @@ local function MainFarm()
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
                 teleportPlayerNeeds(-551, 70, -1485)
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "beach_party"
-                )
+                ) or t > 60
             end
             if ailment.kind == "camping" then
                 _G.PetTask = "Camping (BABY)"
@@ -1740,14 +1754,16 @@ local function MainFarm()
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
                 teleportPlayerNeeds(-20.9, 70, -1056.7)
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "camping"
-                )
+                ) or t > 60
             end
         end
     end
