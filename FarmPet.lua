@@ -1,4 +1,4 @@
--- 8:37
+-- 9:40
 local router = nil
 
 repeat
@@ -141,7 +141,7 @@ local function autoPlay()
     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("DailyLoginAPI/ClaimDailyReward"):InvokeServer()
     sound.FX:play("BambooButton")
     UI.set_app_visibility("DailyLoginApp", false)
-    UI.set_app_visibility("DialogApp", false)
+    -- UI.set_app_visibility("DialogApp", false)
 end
 
 local function antiAFK()
@@ -1901,7 +1901,13 @@ task.spawn(function()
                     -- Player:Kick("Kicked: No activity detected for 7 minutes.")
                     _G.FarmPause = true
                     task.wait(120)
-                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
+                    respawn()
+                    taskwait(5)
+                    turnToBaby()
+                    taskwait(5)
+                    equipPet()
+                    taskwait(2)
+                    buyFurnitures()
                     task.wait(10)
                     local args = {
                         _G.SessionMainPetUnique,
