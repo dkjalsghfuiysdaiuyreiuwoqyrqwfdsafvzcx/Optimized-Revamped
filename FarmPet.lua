@@ -1,4 +1,4 @@
--- 2:51
+-- 11:07
 local router = nil
 
 repeat
@@ -454,14 +454,33 @@ local furnitureList = {
 local function GetFurniture(furnitureKind)
     ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
     local playerName = game.Players.LocalPlayer.Name
-    local data = ClientData.get_data()[playerName].house_interior.furniture
-    for x, y in pairs(data) do
-        if y.id == furnitureKind then
-            return x
+    local data
+    local ok = pcall(function()
+        data = ClientData.get_data()[playerName].house_interior.furniture
+    end)
+
+    if ok and data then
+        for x, y in pairs(data) do
+            if y.id == furnitureKind then
+                return x
+            end
         end
     end
+
+    if not ok then
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
+        task.wait(2)
+        data = ClientData.get_data()[playerName].house_interior.furniture
+        for x, y in pairs(data) do
+            if y.id == furnitureKind then
+                return x
+            end
+        end
+    end
+
     return nil
 end
+
 
 local function GetBuildingFurniture(furnitureName)
     local furnitureFolder = workspace.HouseInteriors.furniture
