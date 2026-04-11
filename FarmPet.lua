@@ -1,4 +1,4 @@
--- 2:22
+-- 2:35
 local router = nil
 
 repeat
@@ -1034,48 +1034,49 @@ local function fireAllMatching(pattern, args)
 end
 
 local function doEventTasks()
-    fireAllMatching("DailiesNetService", {"sugarfest"})
-    fireAllMatching("BoardGameNetService", {})
+    task.spawn(function()
+        fireAllMatching("DailiesNetService", {"sugarfest"})
+        fireAllMatching("BoardGameNetService", {})
 
-    for x, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
-        if y.kind == "sugarfest_2026_dice" then
-            dbg("Using Sugarfest Dice")
-            local equipArgs = {
-                y.unique,
-                {
-                    use_sound_delay = true,
-                    equip_as_last = false
+        for x, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
+            if y.kind == "sugarfest_2026_dice" then
+                dbg("Using Sugarfest Dice")
+                local equipArgs = {
+                    y.unique,
+                    {
+                        use_sound_delay = true,
+                        equip_as_last = false
+                    }
                 }
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(equipArgs))
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(equipArgs))
 
-            fireAllMatching("BoardGameNetService", {{
-                dice_item_unique = y.unique
-            }})
+                fireAllMatching("BoardGameNetService", {{
+                    dice_item_unique = y.unique
+                }})
 
-            task.wait(1)
+                task.wait(1)
+            end
+
+            if y.kind == "sugarfest_2026_custom_dice" then
+                dbg("Using Custom Dice")
+                local equipArgs = {
+                    y.unique,
+                    {
+                        use_sound_delay = true,
+                        equip_as_last = false
+                    }
+                }
+                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(equipArgs))
+
+                fireAllMatching("BoardGameNetService", {{
+                    dice_item_unique = y.unique,
+                    supplied_distance = 6
+                }})
+            end
         end
 
-        if y.kind == "sugarfest_2026_custom_dice" then
-            dbg("Using Custom Dice")
-            local equipArgs = {
-                y.unique,
-                {
-                    use_sound_delay = true,
-                    equip_as_last = false
-                }
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Equip"):InvokeServer(unpack(equipArgs))
+        if getgenv().HiraXRey.AutoChisel then
 
-            fireAllMatching("BoardGameNetService", {{
-                dice_item_unique = y.unique,
-                supplied_distance = 6
-            }})
-        end
-    end
-
-    if getgenv().HiraXRey.AutoChisel then
-        task.spawn(function()
             dbg("Buying Chisel")
             local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
             local maxChisel = math.floor(EggsCandies / 6500)
@@ -1104,14 +1105,14 @@ local function doEventTasks()
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffCarve"):InvokeServer(unpack(args))
                         game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
+                        task.wait(0.25)
                     end
                     game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
                 end
             end
-        
-        end)
-
-    end
+        end
+    
+    end)
 end
 
 local initialPetPenRun = true
