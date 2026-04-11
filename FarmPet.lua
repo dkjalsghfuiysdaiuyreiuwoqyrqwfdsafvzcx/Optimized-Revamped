@@ -1,4 +1,4 @@
--- 10:04
+-- 10:11
 local router = nil
 
 repeat
@@ -145,7 +145,7 @@ local function autoPlay()
     UI.set_app_visibility("DailyLoginApp", false)
     -- UI.set_app_visibility("DialogApp", false)
 
-
+    task.wait(10)
     getgenv().fsysCore = require(game:GetService("ReplicatedStorage").ClientModules.Core.InteriorsM.InteriorsM)
     local OrigThreadID = getthreadidentity()
     task.wait(1)
@@ -158,6 +158,7 @@ local function autoPlay()
         exiting_door = Instance.new("Model", nil)
     })
     setidentity(OrigThreadID)
+    task.wait(10)
 end
 
 local function antiAFK()
