@@ -1,4 +1,4 @@
--- 1:59
+-- 2:22
 local router = nil
 
 repeat
@@ -1075,38 +1075,41 @@ local function doEventTasks()
     end
 
     if getgenv().HiraXRey.AutoChisel then
-        dbg("Buying Chisel")
-        local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
-        local maxChisel = math.floor(EggsCandies / 6500)
-        local buyArgs = {
-            "gifts",
-            "sugarfest_2026_candy_chisel",
-            {
-                buy_count = maxChisel
-            }
-        }
-        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(buyArgs))
-        for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
-            
-            if y.kind == "sugarfest_2026_candy_chisel" then
-                dbg("Opening Chisel")
-                local args = {
-                    y.unique,
-                    "START"
+        task.spawn(function()
+            dbg("Buying Chisel")
+            local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
+            local maxChisel = math.floor(EggsCandies / 6500)
+            local buyArgs = {
+                "gifts",
+                "sugarfest_2026_candy_chisel",
+                {
+                    buy_count = maxChisel
                 }
-                game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/ServerUseTool"):FireServer(unpack(args))
-                for x = 1, 1000 do
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(buyArgs))
+            for _, y in pairs(ClientData.get_data()[Player.Name].inventory.gifts) do
+                
+                if y.kind == "sugarfest_2026_candy_chisel" then
+                    dbg("Opening Chisel")
                     local args = {
-                        {
-                            carve_amount = x
-                        }
+                        y.unique,
+                        "START"
                     }
-                    game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffCarve"):InvokeServer(unpack(args))
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/ServerUseTool"):FireServer(unpack(args))
+                    for x = 1, 1000 do
+                        local args = {
+                            {
+                                carve_amount = x
+                            }
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffCarve"):InvokeServer(unpack(args))
+                        game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
+                    end
                     game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
                 end
-                game:GetService("ReplicatedStorage"):WaitForChild("adoptme_new_net"):WaitForChild("CandyCliffConsumeChisel"):InvokeServer()
             end
-        end
+        
+        end)
 
     end
 end
