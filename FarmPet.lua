@@ -1,4 +1,4 @@
--- 5:18
+-- 6:11
 local router = nil
 
 repeat
@@ -1798,7 +1798,7 @@ task.spawn(function()
                 if elapsed >= TIMEOUT then
                     -- warn("[AFK Kicker] No money change detected for 7 minutes. Kicking...")
                     -- Player:Kick("Kicked: No activity detected for 7 minutes.")
-                    _G.FarmPause = false
+                    _G.FarmPause = true
                     task.wait(120)
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
                     task.wait(10)
@@ -1812,7 +1812,7 @@ task.spawn(function()
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Unequip"):InvokeServer(unpack(args))
                     equipPet()
                     print("farm paused true")
-                    _G.FarmPause = true
+                    _G.FarmPause = false
                     warn("[AFK CHECK] elapsed = " .. math.floor(elapsed) .. " seconds")
                     warn("[AFK CHECK] current pause = " .. tostring(_G.FarmPause))
                 end
