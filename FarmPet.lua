@@ -1,4 +1,4 @@
--- 6:48
+-- 7:05
 local router = nil
 
 repeat
@@ -1229,19 +1229,19 @@ if getgenv().HiraXRey.SyncStats then
 end
 
 if getgenv().HiraXRey.RemoveAllUI then
-    -- existing GUIs
-    for _, gui in pairs(playerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and not ignore[gui.Name] then
-            hideFrames(gui)
-        end
-    end
+    -- -- existing GUIs
+    -- for _, gui in pairs(playerGui:GetChildren()) do
+    --     if gui:IsA("ScreenGui") and not ignore[gui.Name] then
+    --         hideFrames(gui)
+    --     end
+    -- end
 
-    -- future GUIs
-    playerGui.ChildAdded:Connect(function(gui)
-        if gui:IsA("ScreenGui") and not ignore[gui.Name] then
-            hideFrames(gui)
-        end
-    end)
+    -- -- future GUIs
+    -- playerGui.ChildAdded:Connect(function(gui)
+    --     if gui:IsA("ScreenGui") and not ignore[gui.Name] then
+    --         hideFrames(gui)
+    --     end
+    -- end)
 end
 
 local function AutoLure()
@@ -1336,6 +1336,7 @@ local function MainFarm()
             end
             if ailment.kind == "salon" then
                 _G.PetTask = "Salon (PET)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
                 HoldAndDrop()
                 local t = 0
@@ -1352,6 +1353,7 @@ local function MainFarm()
             end
             if ailment.kind == "pizza_party" then
                 _G.PetTask = "Pizza Party (PET)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
                 HoldAndDrop()
                 local t = 0
@@ -1368,6 +1370,7 @@ local function MainFarm()
             end
             if ailment.kind == "school" then
                 _G.PetTask = "School (PET)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 HoldAndDrop()
                 local t = 0
@@ -1384,6 +1387,7 @@ local function MainFarm()
             end
             if ailment.kind == "beach_party" then
                 _G.PetTask = "Beach Party (PET)"
+                dbg(_G.PetTask)
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
                 teleportPlayerNeeds(-551, 70, -1485)
@@ -1403,6 +1407,7 @@ local function MainFarm()
             end
             if ailment.kind == "camping" then
                 _G.PetTask = "Camping (PET)"
+                dbg(_G.PetTask)
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
                 teleportPlayerNeeds(-20.9, 70, -1056.7)
@@ -1422,6 +1427,7 @@ local function MainFarm()
             end
             if ailment.kind == "pet_me" then
                 _G.PetTask = "Pet Me (PET)"
+                dbg(_G.PetTask)
                 local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                 game:GetService("ReplicatedStorage").API['AdoptAPI/FocusPet']:FireServer(safeGetPetChar())
                 task.wait(1)
@@ -1439,6 +1445,7 @@ local function MainFarm()
             end
             if ailment.kind == "play" then
                 _G.PetTask = "Play (PET)"
+                dbg(_G.PetTask)
                 for i = 1, 3 do -- Loop 3 times
                     for i, v in pairs(ClientData.get("inventory").toys) do
                         if v.id == "squeaky_bone_default" then
@@ -1452,6 +1459,7 @@ local function MainFarm()
             end
             if ailment.kind == "walk" then
                 _G.PetTask = "Walk (PET)"
+                dbg(_G.PetTask)
                 -- Get the player's character and HumanoidRootPart
                 local Player = game.Players.LocalPlayer
                 local Character = Player.Character or Player.CharacterAdded:Wait()
@@ -1482,6 +1490,7 @@ local function MainFarm()
             end
             if ailment.kind == "ride" then
                 _G.PetTask = "Ride (PET)"
+                dbg(_G.PetTask)
                 for i,v in pairs(ClientData.get("inventory").strollers) do
                     if v.id == 'stroller-default' then
                         strollerUnique = v.unique
@@ -1555,6 +1564,7 @@ local function MainFarm()
             end
             if ailment.kind == "mystery" then
                 _G.PetTask = "Mystery (PET)"
+                dbg(_G.PetTask)
                 local args = {
                     ClientData.get("pet_char_wrappers")[1]["char"],
                     {
@@ -1610,6 +1620,7 @@ local function MainFarm()
         for _, ailment in pairs(babyAilments) do
             if ailment.kind == "dirty" then
                 _G.PetTask = "Dirty (BABY)"
+                dbg(_G.PetTask)
                 task.spawn(function()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[2].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
@@ -1630,6 +1641,7 @@ local function MainFarm()
             end
             if ailment.kind == "sleepy" then
                 _G.PetTask = "Sleepy (BABY)"
+                dbg(_G.PetTask)
                 task.spawn(function()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[1].furnID,"UseBlock",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
@@ -1650,6 +1662,7 @@ local function MainFarm()
             end
             if ailment.kind == "bored" then
                 _G.PetTask = "Bored (BABY)"
+                dbg(_G.PetTask)
                 task.spawn(function()
                     game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[3].furnID,"Seat1",{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},ClientData.get("char_wrapper")["char"])
                 end)
@@ -1670,6 +1683,7 @@ local function MainFarm()
             end
             if ailment.kind == "hungry" then
                 _G.PetTask = "Hungry (BABY)"
+                dbg(_G.PetTask)
                 if getCurrentMoney() >= 5 then
                     buyItem("food", "apple", 1)
                 end
@@ -1677,6 +1691,7 @@ local function MainFarm()
             end
             if ailment.kind == "thirsty" then
                 _G.PetTask = "Thristy (BABY)"
+                dbg(_G.PetTask)
                 if getCurrentMoney() >= 5 then
                     buyItem("food", "tea", 1)
                 end
@@ -1684,6 +1699,7 @@ local function MainFarm()
             end
             if ailment.kind == "sick" then
                 _G.PetTask = "Sick (BABY)"
+                dbg(_G.PetTask)
                 local remote = game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation")
                 if remote then
                     remote:FireServer("Hospital")
@@ -1710,6 +1726,7 @@ local function MainFarm()
             end
             if ailment.kind == "salon" then
                 _G.PetTask = "Salon (BABY)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
                 local t = 0
                 repeat
@@ -1725,6 +1742,7 @@ local function MainFarm()
             end
             if ailment.kind == "pizza_party" then
                 _G.PetTask = "Pizza Party (BABY)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
                 local t = 0
                 repeat
@@ -1740,6 +1758,7 @@ local function MainFarm()
             end
             if ailment.kind == "school" then
                 _G.PetTask = "School (BABY)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 local t = 0
                 repeat
@@ -1755,6 +1774,7 @@ local function MainFarm()
             end
             if ailment.kind == "beach_party" then
                 _G.PetTask = "Beach Party (BABY)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
@@ -1773,6 +1793,7 @@ local function MainFarm()
             end
             if ailment.kind == "camping" then
                 _G.PetTask = "Camping (BABY)"
+                dbg(_G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 local LiveOpsMapSwap = require(game:GetService("ReplicatedStorage").SharedModules.Game.LiveOpsMapSwap)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("MainMap",game:GetService("Players").LocalPlayer, LiveOpsMapSwap.get_current_map_type())
