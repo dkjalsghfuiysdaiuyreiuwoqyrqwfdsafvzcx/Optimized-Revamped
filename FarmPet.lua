@@ -1,4 +1,4 @@
--- 9:40
+-- 10:04
 local router = nil
 
 repeat
@@ -48,6 +48,7 @@ local CommitRemote = game:GetService("ReplicatedStorage"):WaitForChild("API"):Wa
 local DoNeonFusion = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("PetAPI/DoNeonFusion")
 local ToyToThrow
 local strollerUnique 
+getgenv().fsysCore = require(game:GetService("ReplicatedStorage").ClientModules.Core.InteriorsM.InteriorsM)
 ---------------------------------------------------------------------------------------------------------------------------
 _G.PetTask = "none"
 _G.FarmPause = false
@@ -139,9 +140,24 @@ local function autoPlay()
     UI.set_app_visibility("NewsApp", false)
     task.wait(5)
     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("DailyLoginAPI/ClaimDailyReward"):InvokeServer()
+    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
     sound.FX:play("BambooButton")
     UI.set_app_visibility("DailyLoginApp", false)
     -- UI.set_app_visibility("DialogApp", false)
+
+
+    getgenv().fsysCore = require(game:GetService("ReplicatedStorage").ClientModules.Core.InteriorsM.InteriorsM)
+    local OrigThreadID = getthreadidentity()
+    task.wait(1)
+    setidentity(1)
+    task.wait(1)
+    fsysCore.enter_smooth("housing", "MainDoor", {
+        skip_set_player_collisions = true,
+        skip_send_passive_door_request = true,
+        house_owner = game:GetService("Players"):WaitForChild(Player.Name),
+        exiting_door = Instance.new("Model", nil)
+    })
+    setidentity(OrigThreadID)
 end
 
 local function antiAFK()
