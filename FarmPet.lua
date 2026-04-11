@@ -1,4 +1,4 @@
--- 11:07
+-- 12:36
 local router = nil
 
 repeat
@@ -377,6 +377,7 @@ end
 
 local function HoldAndDrop()
     equipPet()
+    local ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
     local success, err = pcall(function()
         local char = tostring(ClientData.get('pet_char_wrappers')[1].char)
         dbg('holding pet ' .. char)
@@ -395,7 +396,7 @@ local function HoldAndDrop()
     if not success then
         warn("HoldAndDrop error: " .. tostring(err) .. " | retrying in 1s...")
         task.wait(1)
-        HoldAndDrop()
+        equipPet()
     end
 end
 
