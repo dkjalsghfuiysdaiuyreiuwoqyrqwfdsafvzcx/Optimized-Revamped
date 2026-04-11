@@ -1,4 +1,4 @@
--- 6:35
+-- 6:48
 local router = nil
 
 repeat
@@ -1338,40 +1338,49 @@ local function MainFarm()
                 _G.PetTask = "Salon (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Salon")
                 HoldAndDrop()
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[equippedPet],
                     "salon"
-                )
+                ) or t > 60
             end
             if ailment.kind == "pizza_party" then
                 _G.PetTask = "Pizza Party (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("PizzaShop")
                 HoldAndDrop()
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[equippedPet],
                     "pizza_party"
-                )
+                ) or t > 60
             end
             if ailment.kind == "school" then
                 _G.PetTask = "School (PET)"
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("School")
                 HoldAndDrop()
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[equippedPet],
                     "school"
-                )
+                ) or t > 60
             end
             if ailment.kind == "beach_party" then
                 _G.PetTask = "Beach Party (PET)"
@@ -1380,14 +1389,17 @@ local function MainFarm()
                 teleportPlayerNeeds(-551, 70, -1485)
                 createPlatform("beach_party")
                 HoldAndDrop()
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[equippedPet],
                     "beach_party"
-                )
+                ) or t > 60
             end
             if ailment.kind == "camping" then
                 _G.PetTask = "Camping (PET)"
@@ -1396,14 +1408,17 @@ local function MainFarm()
                 teleportPlayerNeeds(-20.9, 70, -1056.7)
                 createPlatform("camping")
                 HoldAndDrop()
+                local t = 0
                 repeat
                     task.wait(1)
+                    t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[equippedPet],
                     "camping"
-                )
+                ) or t > 60
             end
             if ailment.kind == "pet_me" then
                 _G.PetTask = "Pet Me (PET)"
@@ -1603,6 +1618,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1622,6 +1638,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1641,6 +1658,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1680,6 +1698,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1696,6 +1715,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1710,6 +1730,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1724,6 +1745,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1741,6 +1763,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
@@ -1758,6 +1781,7 @@ local function MainFarm()
                 repeat
                     task.wait(1)
                     t = t + 1
+                    dbg(t)
                 until not HasAilment(
                     require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
                         .get_data()[game.Players.LocalPlayer.Name]
