@@ -1,4 +1,4 @@
--- 8:15
+-- 8:37
 local router = nil
 
 repeat
@@ -386,8 +386,22 @@ local function equipPet()
         return safeGetEquippedPetUnique()
     end)
 
-    if not ok or not unique then
+    local petCharOk, petCharName = pcall(function()
+        return safeGetPetChar()
+    
+    end)
+
+    if not ok or not unique or not petCharOk or not petCharName then
         if _G.SessionMainPetUnique then
+            local args = {
+                _G.SessionMainPetUnique,
+                {
+                    use_sound_delay = true,
+                    equip_as_last = false
+                }
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ToolAPI/Unequip"):InvokeServer(unpack(args))
+            task.wait(2)
             EquipRemote:InvokeServer(_G.SessionMainPetUnique, {
                 use_sound_delay = true,
                 equip_as_last = false
@@ -875,7 +889,7 @@ local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitu
     if specialFurnitureNumber then
         dbg("Running Special furniture")
         task.spawn(function()
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(specialFurnitureNumber, usage, {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, ClientData.get("pet_char_wrappers")[1]["char"])
+            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(specialFurnitureNumber, usage, {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, safeGetPetChar())
         end)
     end
     
@@ -884,7 +898,7 @@ local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitu
         game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("housing", Player.Name)
         task.wait(1)
         task.spawn(function()
-            game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[furnitureNumber].furnID,usage,{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.Head.Position + Vector3.new(0, .5, 0))},ClientData.get("pet_char_wrappers")[1]["char"])
+            game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[furnitureNumber].furnID,usage,{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.Head.Position + Vector3.new(0, .5, 0))},safeGetPetChar())
         end)
     end
 
@@ -1572,7 +1586,7 @@ local function MainFarm()
                 _G.PetTask = "Mystery (PET)"
                 dbg(_G.PetTask)
                 local args = {
-                    ClientData.get("pet_char_wrappers")[1]["char"],
+                    safeGetPetChar(),
                     {
                         FocusPet = true
                     }
@@ -1582,7 +1596,7 @@ local function MainFarm()
                     -- loop through all actions
                     for _ , action in ipairs(actions) do
                         local args = {
-                            ClientData.get("pet_char_wrappers")[1]["char"],
+                            safeGetPetChar(),
                             {
                                 FocusPet = true
                             }
@@ -1591,7 +1605,7 @@ local function MainFarm()
                         
                         task.spawn(function() 
                             local args = {
-                                ClientData.get("pet_char_wrappers")[1]["char"],
+                                safeGetPetChar(),
                                 {
                                     FocusPet = true
                                 }
