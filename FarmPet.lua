@@ -1,4 +1,4 @@
--- 1:11
+-- 1:37
 local router = nil
 
 repeat
@@ -132,32 +132,35 @@ end
 -- auto play
 local function autoPlay() 
     local NewsApp = game:GetService("Players").LocalPlayer.PlayerGui.NewsApp.Enabled
-    local sound = require(game.ReplicatedStorage:WaitForChild("Fsys")).load("SoundPlayer")
-    local UI = require(game.ReplicatedStorage:WaitForChild("Fsys")).load("UIManager")
-    
-    sound.FX:play("BambooButton")
-    UI.set_app_visibility("NewsApp", false)
-    task.wait(5)
-    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("DailyLoginAPI/ClaimDailyReward"):InvokeServer()
-    sound.FX:play("BambooButton")
-    UI.set_app_visibility("DailyLoginApp", false)
-    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
-    -- UI.set_app_visibility("DialogApp", false)
+    while NewsApp do
+        NewsApp = game:GetService("Players").LocalPlayer.PlayerGui.NewsApp.Enabled
+        local sound = require(game.ReplicatedStorage:WaitForChild("Fsys")).load("SoundPlayer")
+        local UI = require(game.ReplicatedStorage:WaitForChild("Fsys")).load("UIManager")
+        
+        sound.FX:play("BambooButton")
+        UI.set_app_visibility("NewsApp", false)
+        task.wait(5)
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("DailyLoginAPI/ClaimDailyReward"):InvokeServer()
+        sound.FX:play("BambooButton")
+        UI.set_app_visibility("DailyLoginApp", false)
+        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
+        -- UI.set_app_visibility("DialogApp", false)
 
-    task.wait(10)
-    getgenv().fsysCore = require(game:GetService("ReplicatedStorage").ClientModules.Core.InteriorsM.InteriorsM)
-    local OrigThreadID = getthreadidentity()
-    task.wait(1)
-    setidentity(1)
-    task.wait(1)
-    fsysCore.enter_smooth("housing", "MainDoor", {
-        skip_set_player_collisions = true,
-        skip_send_passive_door_request = true,
-        house_owner = game:GetService("Players"):WaitForChild(Player.Name),
-        exiting_door = Instance.new("Model", nil)
-    })
-    setidentity(OrigThreadID)
-    task.wait(10)
+        task.wait(10)
+        getgenv().fsysCore = require(game:GetService("ReplicatedStorage").ClientModules.Core.InteriorsM.InteriorsM)
+        local OrigThreadID = getthreadidentity()
+        task.wait(1)
+        setidentity(1)
+        task.wait(1)
+        fsysCore.enter_smooth("housing", "MainDoor", {
+            skip_set_player_collisions = true,
+            skip_send_passive_door_request = true,
+            house_owner = game:GetService("Players"):WaitForChild(Player.Name),
+            exiting_door = Instance.new("Model", nil)
+        })
+        setidentity(OrigThreadID)
+        task.wait(10)
+    end
 end
 
 local function antiAFK()
@@ -1387,7 +1390,7 @@ local function MainFarm()
                             furnitureList[8].furnID, 
                             "Seat1", 
                             {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},
-                            workspace:WaitForChild("Pets"):WaitForChild(ClientData.get("pet_char_wrappers")[1]["char"]))
+                            ClientData.get("pet_char_wrappers")[1]["char"])
                     end)
                 end
 
