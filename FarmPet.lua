@@ -1,4 +1,4 @@
--- 5:01
+-- 6:46
 local router = nil
 
 repeat
@@ -1748,7 +1748,6 @@ local function MainFarm()
                 _G.PetTask = "Sick (BABY)"
                 print("Doing " .. _G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
-                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
                 while not getgenv().HospitalBedID do
                     print(getgenv().HospitalBedID)
                     getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
