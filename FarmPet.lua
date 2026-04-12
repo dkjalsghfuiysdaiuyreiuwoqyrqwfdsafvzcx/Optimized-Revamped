@@ -1,4 +1,4 @@
--- 11:03
+-- 11:23
 local router = nil
 
 repeat
@@ -141,7 +141,7 @@ local function autoPlay()
     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("DailyLoginAPI/ClaimDailyReward"):InvokeServer()
     sound.FX:play("BambooButton")
     UI.set_app_visibility("DailyLoginApp", false)
-    UI.set_app_visibility("DialogApp", false)
+    -- UI.set_app_visibility("DialogApp", false)
 end
 
 local function antiAFK()
@@ -1151,7 +1151,7 @@ if getgenv().HiraXRey.PetPen then
     end)
 end
 
-if getgenv().HiraXRey.SyncStats then
+if getgenv().HiraXRey.SyncStatsFALSE then
     task.spawn(function()
         local inventoryPets = safeGetInventoryPets()
         if inventoryPets then
@@ -1239,7 +1239,7 @@ if getgenv().HiraXRey.SyncStats then
 
 end
 
-if getgenv().HiraXRey.RemoveAllUI then
+if getgenv().HiraXRey.RemoveAllUIFALSE then
     -- existing GUIs
     for _, gui in pairs(playerGui:GetChildren()) do
         if gui:IsA("ScreenGui") and not ignore[gui.Name] then
