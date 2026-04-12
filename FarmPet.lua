@@ -1,4 +1,4 @@
--- 12:10
+-- 12:46
 local router = nil
 
 repeat
@@ -540,6 +540,13 @@ local furnitureList = {
         kind = "lures_2023_normal_lure",
         furnitureName = "Lures2023NormalLure",
         cframe = CFrame.new(11, 0, -19.900390625) * CFrame.Angles(0, 0, 0),
+        furnID = nil
+    },
+    {
+        minMoney = 270,
+        kind = "hospital_refresh_2023_bed",
+        furnitureName = "HospitalRefresh2023Bed",
+        cframe = CFrame.new(6.2001953125, 0, -21) * CFrame.Angles(0, 0, 0),
         furnID = nil
     }
 }
@@ -1356,13 +1363,11 @@ local function MainFarm()
                 if _G.FarmPause then break end
                 _G.PetTask = "Sick (PET)"
                 print("Doing " .. _G.PetTask)
-                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
                 HoldAndDrop()
-
                 dbg("Running Special furniture")
                 task.spawn(function()
                     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                        getgenv().HospitalBedID, 
+                        furnitureList[7].furnID, 
                         "Seat1", 
                         {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
                         ClientData.get("pet_char_wrappers")[1]["char"])
@@ -1378,7 +1383,7 @@ local function MainFarm()
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[safeGetEquippedPetUnique()],
                     "sick"
-                ) or t > 25
+                ) or t > 25 or not furnitureList[7].furnID
             end
             if ailment.kind == "salon" then
                 if _G.FarmPause then break end
@@ -1738,14 +1743,9 @@ local function MainFarm()
                 if _G.FarmPause then break end
                 _G.PetTask = "Sick (BABY)"
                 print("Doing " .. _G.PetTask)
-                local remote = game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation")
-                if remote then
-                    remote:FireServer("Hospital")
-                end
-                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
 
                 task.spawn(function()
-                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(getgenv().HospitalBedID, "Seat1", {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, ClientData.get("char_wrapper")["char"])
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(furnitureList[7].furnID, "Seat1", {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, ClientData.get("char_wrapper")["char"])
                 end)
 
                 local t = 0
@@ -1757,7 +1757,7 @@ local function MainFarm()
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "sick"
-                ) or t > 25
+                ) or t > 25 or not furnitureList[7].furnID
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
