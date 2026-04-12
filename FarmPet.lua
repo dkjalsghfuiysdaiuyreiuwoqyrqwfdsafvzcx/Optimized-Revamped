@@ -1,4 +1,4 @@
--- 1:37
+-- 2:07
 local router = nil
 
 repeat
@@ -1386,7 +1386,7 @@ local function MainFarm()
                     dbg("Running SICK from House furniture")
                     task.spawn(function()
                         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                            game:GetService("Players"):WaitForChild(Player.Name),
+                            ClientData.get("char_wrapper")["char"],
                             furnitureList[8].furnID, 
                             "Seat1", 
                             {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},
@@ -1779,12 +1779,11 @@ local function MainFarm()
                             ClientData.get("char_wrapper")["char"])
                     end)
                 else
-                    HoldAndDrop()
 
                     dbg("Running SICK from House furniture")
                     task.spawn(function()
                         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                            game:GetService("Players"):WaitForChild(Player.Name),
+                            ClientData.get("char_wrapper")["char"],
                             furnitureList[8].furnID, 
                             "Seat1", 
                             {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
