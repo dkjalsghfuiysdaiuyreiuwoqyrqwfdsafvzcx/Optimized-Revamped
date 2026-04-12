@@ -1,4 +1,4 @@
--- 2:07
+-- 3:01
 local router = nil
 
 repeat
@@ -543,13 +543,6 @@ local furnitureList = {
         kind = "lures_2023_normal_lure",
         furnitureName = "Lures2023NormalLure",
         cframe = CFrame.new(11, 0, -19.900390625) * CFrame.Angles(0, 0, 0),
-        furnID = nil
-    },
-    {
-        minMoney = 270,
-        kind = "hospital_refresh_2023_bed",
-        furnitureName = "HospitalRefresh2023Bed",
-        cframe = CFrame.new(6.2001953125, 0, -21) * CFrame.Angles(0, 0, 0),
         furnID = nil
     }
 }
@@ -1366,33 +1359,18 @@ local function MainFarm()
                 if _G.FarmPause then break end
                 _G.PetTask = "Sick (PET)"
                 print("Doing " .. _G.PetTask)
-                if not furnitureList[8].furnID then
-                    game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
-                    getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
-                    HoldAndDrop()
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
+                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                HoldAndDrop()
 
-                    dbg("Running SICK from Setlocation furniture")
-                    task.spawn(function()
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                            getgenv().HospitalBedID, 
-                            "Seat1", 
-                            {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
-                            ClientData.get("pet_char_wrappers")[1]["char"])
-                    end)
-                    
-                else
-                    HoldAndDrop()
-
-                    dbg("Running SICK from House furniture")
-                    task.spawn(function()
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                            ClientData.get("char_wrapper")["char"],
-                            furnitureList[8].furnID, 
-                            "Seat1", 
-                            {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},
-                            ClientData.get("pet_char_wrappers")[1]["char"])
-                    end)
-                end
+                dbg("Running SICK from Setlocation furniture")
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
+                        getgenv().HospitalBedID, 
+                        "Seat1", 
+                        {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
+                        ClientData.get("pet_char_wrappers")[1]["char"])
+                end)
 
                 local t = 0
                 repeat
@@ -1764,32 +1742,18 @@ local function MainFarm()
                 if _G.FarmPause then break end
                 _G.PetTask = "Sick (BABY)"
                 print("Doing " .. _G.PetTask)
+                game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
+                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                HoldAndDrop()
 
-                if not furnitureList[8].furnID then
-                    game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
-                    getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
-                    HoldAndDrop()
-
-                    dbg("Running SICK from Setlocation furniture")
-                    task.spawn(function()
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                            getgenv().HospitalBedID, 
-                            "Seat1", 
-                            {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
-                            ClientData.get("char_wrapper")["char"])
-                    end)
-                else
-
-                    dbg("Running SICK from House furniture")
-                    task.spawn(function()
-                        game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
-                            ClientData.get("char_wrapper")["char"],
-                            furnitureList[8].furnID, 
-                            "Seat1", 
-                            {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
-                            game:GetService("Players").LocalPlayer.Character)
-                    end)
-                end
+                dbg("Running SICK from Setlocation furniture")
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
+                        getgenv().HospitalBedID, 
+                        "Seat1", 
+                        {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
+                        ClientData.get("char_wrapper")["char"])
+                end)
 
                 local t = 0
                 repeat
