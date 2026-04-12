@@ -1,4 +1,4 @@
--- 3:01
+-- 5:01
 local router = nil
 
 repeat
@@ -1087,7 +1087,7 @@ local function doEventTasks()
         end
 
         -- if getgenv().HiraXRey.AutoChisel then
-        if getgenv().HiraXRey.AutoChiselFALSE then
+        if getgenv().HiraXRey.AutoChisel then
 
             dbg("Buying Chisel")
             local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
@@ -1162,7 +1162,7 @@ if getgenv().HiraXRey.PetPen then
     end)
 end
 
-if getgenv().HiraXRey.SyncStatsFALSE then
+if getgenv().HiraXRey.SyncStats then
     task.spawn(function()
         local inventoryPets = safeGetInventoryPets()
         if inventoryPets then
@@ -1250,7 +1250,7 @@ if getgenv().HiraXRey.SyncStatsFALSE then
 
 end
 
-if getgenv().HiraXRey.RemoveAllUIFALSE then
+if getgenv().HiraXRey.RemoveAllUI then
     -- existing GUIs
     for _, gui in pairs(playerGui:GetChildren()) do
         if gui:IsA("ScreenGui") and not ignore[gui.Name] then
@@ -1360,7 +1360,12 @@ local function MainFarm()
                 _G.PetTask = "Sick (PET)"
                 print("Doing " .. _G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
-                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                task.wait(1)
+                while not getgenv().HospitalBedID do
+                    print(getgenv().HospitalBedID)
+                    getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                    task.wait(1)
+                end
                 HoldAndDrop()
 
                 dbg("Running SICK from Setlocation furniture")
@@ -1744,6 +1749,11 @@ local function MainFarm()
                 print("Doing " .. _G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
                 getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                while not getgenv().HospitalBedID do
+                    print(getgenv().HospitalBedID)
+                    getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
+                    task.wait(1)
+                end
                 HoldAndDrop()
 
                 dbg("Running SICK from Setlocation furniture")
