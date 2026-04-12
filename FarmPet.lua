@@ -1,4 +1,4 @@
--- 11:23
+-- 11:29
 local router = nil
 
 repeat
@@ -142,6 +142,21 @@ local function autoPlay()
     sound.FX:play("BambooButton")
     UI.set_app_visibility("DailyLoginApp", false)
     -- UI.set_app_visibility("DialogApp", false)
+
+    task.wait(10)
+    getgenv().fsysCore = require(game:GetService("ReplicatedStorage").ClientModules.Core.InteriorsM.InteriorsM)
+    local OrigThreadID = getthreadidentity()
+    task.wait(1)
+    setidentity(1)
+    task.wait(1)
+    fsysCore.enter_smooth("housing", "MainDoor", {
+        skip_set_player_collisions = true,
+        skip_send_passive_door_request = true,
+        house_owner = game:GetService("Players"):WaitForChild(Player.Name),
+        exiting_door = Instance.new("Model", nil)
+    })
+    setidentity(OrigThreadID)
+    task.wait(10)
 end
 
 local function antiAFK()
