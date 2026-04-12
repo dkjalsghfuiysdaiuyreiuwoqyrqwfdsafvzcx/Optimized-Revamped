@@ -1,4 +1,4 @@
--- 12:57
+-- 1:11
 local router = nil
 
 repeat
@@ -1376,16 +1376,18 @@ local function MainFarm()
                             {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
                             ClientData.get("pet_char_wrappers")[1]["char"])
                     end)
+                    
                 else
                     HoldAndDrop()
 
                     dbg("Running SICK from House furniture")
                     task.spawn(function()
                         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
+                            game:GetService("Players"):WaitForChild(Player.Name),
                             furnitureList[8].furnID, 
                             "Seat1", 
-                            {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
-                            ClientData.get("pet_char_wrappers")[1]["char"])
+                            {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)},
+                            workspace:WaitForChild("Pets"):WaitForChild(ClientData.get("pet_char_wrappers")[1]["char"]))
                     end)
                 end
 
@@ -1399,7 +1401,7 @@ local function MainFarm()
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.ailments[safeGetEquippedPetUnique()],
                     "sick"
-                ) or t > 25 or not furnitureList[8].furnID
+                ) or t > 25
             end
             if ailment.kind == "salon" then
                 if _G.FarmPause then break end
@@ -1779,10 +1781,11 @@ local function MainFarm()
                     dbg("Running SICK from House furniture")
                     task.spawn(function()
                         game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
+                            game:GetService("Players"):WaitForChild(Player.Name),
                             furnitureList[8].furnID, 
                             "Seat1", 
                             {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
-                            ClientData.get("char_wrapper")["char"])
+                            game:GetService("Players").LocalPlayer.Character)
                     end)
                 end
 
@@ -1795,7 +1798,7 @@ local function MainFarm()
                         .get_data()[game.Players.LocalPlayer.Name]
                         .ailments_manager.baby_ailments,
                     "sick"
-                ) or t > 25 or not furnitureList[8].furnID
+                ) or t > 25
     
                 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("AdoptAPI/ExitSeatStates"):FireServer()
             end
