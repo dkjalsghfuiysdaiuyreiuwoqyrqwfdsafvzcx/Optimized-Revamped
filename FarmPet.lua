@@ -1,4 +1,4 @@
--- 11:33
+-- 11:51
 local router = nil
 
 repeat
@@ -889,7 +889,7 @@ local function HasAilment(ailments, targetKind)
     return false
 end
 
-local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitureNumber, taskType)
+local function HandlePetAilments(furnitureNumber, usage, petTask)
     equipPet()
     ClientData = require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
     local equippedPet =  safeGetEquippedPetUnique()
@@ -899,19 +899,11 @@ local function HandlePetAilments(furnitureNumber, usage, petTask, specialFurnitu
     dbg("equippedPet = " .. tostring(equippedPet))
     dbg("pet char = " .. tostring(ClientData.get("pet_char_wrappers") and ClientData.get("pet_char_wrappers")[1] and ClientData.get("pet_char_wrappers")[1].char))
     dbg("doing " .. petTask .. " Task")
-    if taskType == "Special" then
-        dbg("Running Special furniture")
-        task.spawn(function()
-            game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(specialFurnitureNumber, usage, {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, ClientData.get("pet_char_wrappers")[1]["char"])
-        end)
-    end
     
-    if taskType == "Normal" then
-        dbg("Running normal furniture")
-        task.spawn(function()
-            game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[furnitureNumber].furnID,usage,{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.Head.Position + Vector3.new(0, .5, 0))},ClientData.get("pet_char_wrappers")[1]["char"])
-        end)
-    end
+    dbg("Running normal furniture")
+    task.spawn(function()
+        game:GetService("ReplicatedStorage").API["HousingAPI/ActivateFurniture"]:InvokeServer(game:GetService("Players").LocalPlayer,furnitureList[furnitureNumber].furnID,usage,{['cframe'] = CFrame.new(game:GetService("Players").LocalPlayer.Character.Head.Position + Vector3.new(0, .5, 0))},ClientData.get("pet_char_wrappers")[1]["char"])
+    end)
 
     local t = 0
     repeat
@@ -1365,8 +1357,27 @@ local function MainFarm()
                 print("Doing " .. _G.PetTask)
                 game:GetService("ReplicatedStorage").API:FindFirstChild("LocationAPI/SetLocation"):FireServer("Hospital")
                 HoldAndDrop()
-                getgenv().HospitalBedID = GetBuildingFurniture("HospitalRefresh2023Bed")
-                HandlePetAilments(0, "Seat1", "sick", getgenv().HospitalBedID)
+
+                dbg("Running Special furniture")
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(
+                        getgenv().HospitalBedID, 
+                        "Seat1", 
+                        {["cframe"] = CFrame.new(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart.Position)}, 
+                        ClientData.get("pet_char_wrappers")[1]["char"])
+                end)
+
+                local t = 0
+                repeat
+                    task.wait(1)
+                    t = t + 1
+                    dbg(t)
+                until not HasAilment(
+                    require(game:GetService("ReplicatedStorage").ClientModules.Core.ClientData)
+                        .get_data()[game.Players.LocalPlayer.Name]
+                        .ailments_manager.ailments[safeGetEquippedPetUnique()],
+                    "sick"
+                ) or t > 25
             end
             if ailment.kind == "salon" then
                 if _G.FarmPause then break end
