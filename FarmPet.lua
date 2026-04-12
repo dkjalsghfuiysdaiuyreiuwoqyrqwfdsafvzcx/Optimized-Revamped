@@ -1,4 +1,4 @@
--- 11:29
+-- 11:33
 local router = nil
 
 repeat
@@ -190,7 +190,7 @@ local function disableTenMinutesCash()
 end
 
 local function turnToBaby()
-    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/ChooseTeam"):InvokeServer("Babies",{["dont_send_back_home"] = true, ["source_for_logging"] = "avatar_editor"})
+    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/ChooseTeam"):InvokeServer("Babies",{["dont_send_back_home"] = false, ["source_for_logging"] = "avatar_editor"})
 end
 
 local function taskwait(x)
@@ -846,7 +846,7 @@ autoPlay()
 antiAFK()
 disableTenMinutesCash()
 optimizer()
-respawn()
+-- respawn()
 taskwait(5)
 turnToBaby()
 taskwait(5)
