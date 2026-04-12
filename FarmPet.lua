@@ -1,4 +1,4 @@
--- 3:21
+-- 10:53
 local router = nil
 
 repeat
@@ -1075,7 +1075,8 @@ local function doEventTasks()
             end
         end
 
-        if getgenv().HiraXRey.AutoChisel then
+        -- if getgenv().HiraXRey.AutoChisel then
+        if getgenv().HiraXRey.AutoChiselFALSE then
 
             dbg("Buying Chisel")
             local EggsCandies = ClientData.get_data()[game.Players.LocalPlayer.Name].eggs_2026
