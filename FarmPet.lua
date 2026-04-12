@@ -1,4 +1,4 @@
--- 12:02
+-- 12:10
 local router = nil
 
 repeat
@@ -141,7 +141,7 @@ local function autoPlay()
     game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("DailyLoginAPI/ClaimDailyReward"):InvokeServer()
     sound.FX:play("BambooButton")
     UI.set_app_visibility("DailyLoginApp", false)
-    respawn()
+    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/Spawn"):InvokeServer()
     -- UI.set_app_visibility("DialogApp", false)
 
     task.wait(10)
