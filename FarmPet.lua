@@ -1,4 +1,4 @@
--- 6:46
+-- 7:29
 local router = nil
 
 repeat
@@ -1163,90 +1163,93 @@ if getgenv().HiraXRey.PetPen then
 end
 
 if getgenv().HiraXRey.SyncStats then
-    task.spawn(function()
-        local inventoryPets = safeGetInventoryPets()
-        if inventoryPets then
-            -- use inventoryPets
-        else
-            warn("inventory.pets not available")
-        end
-        local petGroups = {}
+    while getgenv().HiraXRey.SyncStats do
+        task.spawn(function()
+            local inventoryPets = safeGetInventoryPets()
+            if inventoryPets then
+                -- use inventoryPets
+            else
+                warn("inventory.pets not available")
+            end
+            local petGroups = {}
 
-        for _, pet in pairs(inventoryPets) do
-            local converted = ConvertPetKindToNameHTTP(pet.kind)
+            for _, pet in pairs(inventoryPets) do
+                local converted = ConvertPetKindToNameHTTP(pet.kind)
 
-            if converted then
-                local variant = pet.properties and pet.properties.mega_neon and "MEGA"
-                                or pet.properties and pet.properties.neon and "NEON"
-                                or "NORMAL"
-                local potion = pet.properties and pet.properties.rideable and pet.properties.flyable and "FLY_RIDE"
-                                or pet.properties and pet.properties.rideable and "RIDE"
-                                or pet.properties and pet.properties.flyable and "FLY"
-                                or "NONE"
+                if converted then
+                    local variant = pet.properties and pet.properties.mega_neon and "MEGA"
+                                    or pet.properties and pet.properties.neon and "NEON"
+                                    or "NORMAL"
+                    local potion = pet.properties and pet.properties.rideable and pet.properties.flyable and "FLY_RIDE"
+                                    or pet.properties and pet.properties.rideable and "RIDE"
+                                    or pet.properties and pet.properties.flyable and "FLY"
+                                    or "NONE"
 
-                local key = converted.name .. "|" .. variant .. "|" .. potion
+                    local key = converted.name .. "|" .. variant .. "|" .. potion
 
-                if petGroups[key] then
-                    petGroups[key].quantity += 1
+                    if petGroups[key] then
+                        petGroups[key].quantity += 1
+                    else
+                        petGroups[key] = {
+                            thumbnailImage = "https://cdn.playadopt.me/items/" .. pet.kind .. ".png",
+                            type           = "PET",
+                            name           = converted.name,
+                            variant        = variant,
+                            potion         = potion,
+                            rarity         = string.upper(converted.rarity or ""),
+                            quantity       = 1,
+                        }
+                    end
                 else
-                    petGroups[key] = {
-                        thumbnailImage = "https://cdn.playadopt.me/items/" .. pet.kind .. ".png",
-                        type           = "PET",
-                        name           = converted.name,
-                        variant        = variant,
-                        potion         = potion,
-                        rarity         = string.upper(converted.rarity or ""),
-                        quantity       = 1,
-                    }
+                    warn("⚠️ Skipped unknown pet kind:", pet.kind)
                 end
-            else
-                warn("⚠️ Skipped unknown pet kind:", pet.kind)
-            end
-        end
-
-        local itemsToUpload = {}
-        for _, item in pairs(petGroups) do
-            table.insert(itemsToUpload, item)
-            print("📦 Queued:", item.name, "x" .. item.quantity)
-        end
-
-        local CHUNK_SIZE = 2
-
-        for i = 1, #itemsToUpload, CHUNK_SIZE do
-            local chunk = {}
-            for j = i, math.min(i + CHUNK_SIZE - 1, #itemsToUpload) do
-                table.insert(chunk, itemsToUpload[j])
             end
 
-            local isFirst = i == 1  -- only first chunk does full replace, rest append
-
-            print("📤 Uploading chunk " .. math.ceil(i / CHUNK_SIZE) .. " (" .. #chunk .. " pets)...")
-
-            local status, data, raw = httpJSON(CLIENT_URL, "POST", {
-                account       = Player.Name,
-                device        = getgenv().HiraXRey.DeviceName,
-                apiKey        = getgenv().HiraXRey.ApiKey,
-                potions       = 123,
-                bucks         = 12342,
-                eventCurrency = 12345,
-                tickets       = 123456,
-                append        = not isFirst,  -- first chunk replaces, rest append
-                items         = chunk
-            })
-
-            if status == 200 or status == 201 then
-                print("✅ Chunk uploaded successfully!")
-            else
-                warn("❌ Chunk failed | Status: " .. tostring(status) .. " | Raw: " .. tostring(raw))
-                break  -- stop if a chunk fails
+            local itemsToUpload = {}
+            for _, item in pairs(petGroups) do
+                table.insert(itemsToUpload, item)
+                print("📦 Queued:", item.name, "x" .. item.quantity)
             end
 
-            task.wait(0.5)
-        end
+            local CHUNK_SIZE = 2
 
-        print("✅ All pets uploaded!")
-    
-    end)
+            for i = 1, #itemsToUpload, CHUNK_SIZE do
+                local chunk = {}
+                for j = i, math.min(i + CHUNK_SIZE - 1, #itemsToUpload) do
+                    table.insert(chunk, itemsToUpload[j])
+                end
+
+                local isFirst = i == 1  -- only first chunk does full replace, rest append
+
+                print("📤 Uploading chunk " .. math.ceil(i / CHUNK_SIZE) .. " (" .. #chunk .. " pets)...")
+
+                local status, data, raw = httpJSON(CLIENT_URL, "POST", {
+                    account       = Player.Name,
+                    device        = getgenv().HiraXRey.DeviceName,
+                    apiKey        = getgenv().HiraXRey.ApiKey,
+                    potions       = 123,
+                    bucks         = 12342,
+                    eventCurrency = 12345,
+                    tickets       = 123456,
+                    append        = not isFirst,  -- first chunk replaces, rest append
+                    items         = chunk
+                })
+
+                if status == 200 or status == 201 then
+                    print("✅ Chunk uploaded successfully!")
+                else
+                    warn("❌ Chunk failed | Status: " .. tostring(status) .. " | Raw: " .. tostring(raw))
+                    break  -- stop if a chunk fails
+                end
+
+                task.wait(0.5)
+            end
+
+            print("✅ All pets uploaded!")
+
+        end)
+        task.wait(600)
+    end
 
 end
 
