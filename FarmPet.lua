@@ -1,4 +1,4 @@
--- 7:29
+-- 7:40
 local router = nil
 
 repeat
@@ -1163,8 +1163,8 @@ if getgenv().HiraXRey.PetPen then
 end
 
 if getgenv().HiraXRey.SyncStats then
-    while getgenv().HiraXRey.SyncStats do
-        task.spawn(function()
+    task.spawn(function()
+        while getgenv().HiraXRey.SyncStats do
             local inventoryPets = safeGetInventoryPets()
             if inventoryPets then
                 -- use inventoryPets
@@ -1246,10 +1246,10 @@ if getgenv().HiraXRey.SyncStats then
             end
 
             print("✅ All pets uploaded!")
-
-        end)
-        task.wait(600)
-    end
+            task.wait(600)
+        end
+    
+    end)
 
 end
 
