@@ -1,4 +1,4 @@
--- 7:40
+-- 12:51
 local router = nil
 
 repeat
@@ -54,6 +54,7 @@ _G.FarmPause = false
 _G.EventName = "eggs_2026"
 _G.SessionMainPetUnique = nil
 ---------------------------------------------------------------------------------------------------------------------------
+-- CLIENT_URL = "http://localhost:3000/api/items"
 local CLIENT_URL = "https://rey-x-hub.vercel.app/api/items" -- change this
 ---------------------------------------------------------------------------------------------------------------------------
 
@@ -1127,6 +1128,183 @@ local function doEventTasks()
     end)
 end
 
+-- PETPEN EGG FUNCTIONS
+
+local ValidEggsThatCanBeBought = {
+    [ConvertPetName("Royal Egg")] = {
+        shopType = "pets",
+        shopName = ConvertPetName("Royal Egg"),
+        price = 1500,
+    },
+
+    [ConvertPetName("Endangered Egg")] = {
+        shopType = "pets",
+        shopName = ConvertPetName("Endangered Egg"),
+        price = 750,
+    },
+
+    [ConvertPetName("Cracked Egg")] = {
+        shopType = "pets",
+        shopName = ConvertPetName("Cracked Egg"),
+        price = 350,
+    },
+}
+
+local function isEggName(name)
+    name = string.lower(tostring(name or ""))
+    return string.sub(name, -3) == "egg"
+end
+
+local function buildPriorityEggKinds()
+    local eggKinds = {}
+    local eggKindSet = {}
+
+    for _, eggName in ipairs(getgenv().HiraXRey.PetPenPriority or {}) do
+        if isEggName(eggName) then
+            local eggKind = ConvertPetName(eggName)
+
+            if not eggKindSet[eggKind] then
+                eggKindSet[eggKind] = true
+                table.insert(eggKinds, eggKind)
+            end
+        end
+    end
+
+    return eggKinds, eggKindSet
+end
+
+local function isPetPenEggMode()
+    local eggKinds = buildPriorityEggKinds()
+    return #eggKinds > 0
+end
+
+local function findAvailablePriorityEggInInventory(usedEggs)
+    local data = getData()
+    local inventoryPets = data.inventory.pets or {}
+    local priorityEggKinds = buildPriorityEggKinds()
+
+    for _, wantedEggKind in ipairs(priorityEggKinds) do
+        for unique, pet in pairs(inventoryPets) do
+            if pet.kind == wantedEggKind and not usedEggs[unique] then
+                return unique, wantedEggKind
+            end
+        end
+    end
+
+    return nil, nil
+end
+
+local function buyPriorityEggIfPossible()
+    local priorityEggKinds = buildPriorityEggKinds()
+    local money = getCurrentMoney() or 0
+
+    for _, eggKind in ipairs(priorityEggKinds) do
+        local buyInfo = ValidEggsThatCanBeBought[eggKind]
+
+        if buyInfo and money >= buyInfo.price then
+            dbg("Buying egg: " .. tostring(eggKind))
+
+            buyItem(buyInfo.shopType, buyInfo.shopName, 1)
+            task.wait(2)
+
+            return true
+        end
+    end
+
+    warn("No priority egg available to buy or not enough money")
+    return false
+end
+
+local function getPriorityEggOrBuy(usedEggs)
+    local eggUnique, eggKind = findAvailablePriorityEggInInventory(usedEggs)
+
+    if eggUnique then
+        return eggUnique, eggKind
+    end
+
+    local bought = buyPriorityEggIfPossible()
+
+    if bought then
+        task.wait(1)
+        return findAvailablePriorityEggInInventory(usedEggs)
+    end
+
+    return nil, nil
+end
+
+local function forcePetPenPriorityEggs()
+    local priorityEggKinds, priorityEggKindSet = buildPriorityEggKinds()
+
+    if #priorityEggKinds <= 0 then
+        return false
+    end
+
+    local data = getData()
+    local petPenPets = data.idle_progression_manager.active_pets or {}
+    local inventoryPets = data.inventory.pets or {}
+
+    -- STEP 1:
+    -- Remove anything in pet pen that is not one of the priority eggs.
+    -- This also removes hatched pets because after hatching, penPet.item_info.kind becomes the hatched pet kind, not the egg kind.
+    for unique, penPet in pairs(petPenPets) do
+        local activeKind =
+            penPet.item_info and penPet.item_info.kind
+            or inventoryPets[unique] and inventoryPets[unique].kind
+
+        local shouldRemove =
+            not activeKind
+            or not priorityEggKindSet[activeKind]
+            or penPet.max_age
+
+        if shouldRemove then
+            print("Removing non-priority egg / hatched pet from pen: " .. tostring(activeKind))
+            RemovePetRemote:FireServer(unique)
+            task.wait(0.5)
+        end
+    end
+
+    task.wait(1)
+
+    -- STEP 2:
+    -- Refresh data after removals.
+    data = getData()
+    petPenPets = data.idle_progression_manager.active_pets or {}
+
+    local usedEggs = {}
+    local currentCount = 0
+
+    for unique, penPet in pairs(petPenPets) do
+        currentCount += 1
+        usedEggs[unique] = true
+    end
+
+    -- STEP 3:
+    -- Fill missing slots.
+    -- It uses existing inventory eggs first.
+    -- Only buys if no matching priority eggs are available.
+    while currentCount < 4 do
+        local eggUnique, eggKind = getPriorityEggOrBuy(usedEggs)
+
+        if not eggUnique then
+            warn("No priority egg found/bought. Stopping pet pen refill.")
+            break
+        end
+
+        print("Adding priority egg to pet pen: " .. tostring(eggKind) .. " | " .. tostring(eggUnique))
+
+        AddPetRemote:FireServer(eggUnique)
+
+        usedEggs[eggUnique] = true
+        currentCount += 1
+
+        task.wait(0.75)
+    end
+
+    return true
+end
+
+-- PETPEN FUNCTIONS
+
 local initialPetPenRun = true
 if getgenv().HiraXRey.PetPen then
     dbg("PetPen started")
@@ -1138,20 +1316,24 @@ if getgenv().HiraXRey.PetPen then
             if data.idle_progression_manager.age_up_pending or petPenCount < 4 or initialPetPenRun then
                 initialPetPenRun = false
                 CommitRemote:FireServer(true)
-                task.wait(1)
+                task.wait(15)
                 data = getData()
 
-                local priorityKinds = buildPriorityKinds()
-                local desired, desiredSet, inventorySet = buildDesiredPets(data, priorityKinds)
-
-                removeInvalidPetsFromPen(data, desiredSet, inventorySet)
-
-                task.wait(1)
-                data = getData()
-
-                addMissingPetsToPen(data, desired)
+                local eggModeHandled = forcePetPenPriorityEggs()
                 
-                if getgenv().HiraXRey.AutoFuse then
+                if not eggModeHandled then
+                    local priorityKinds = buildPriorityKinds()
+                    local desired, desiredSet, inventorySet = buildDesiredPets(data, priorityKinds)
+                
+                    removeInvalidPetsFromPen(data, desiredSet, inventorySet)
+                
+                    task.wait(1)
+                    data = getData()
+                
+                    addMissingPetsToPen(data, desired)
+                end
+                
+                if getgenv().HiraXRey.FusePets then
                     runFusionPhase(false) -- normal -> neon
                     runFusionPhase(true)  -- neon -> mega
                 end
@@ -1235,10 +1417,13 @@ if getgenv().HiraXRey.SyncStats then
                     items         = chunk
                 })
 
+                print("testing api calls", status, data, raw)
+
                 if status == 200 or status == 201 then
                     print("✅ Chunk uploaded successfully!")
                 else
                     warn("❌ Chunk failed | Status: " .. tostring(status) .. " | Raw: " .. tostring(raw))
+                    game.Players.LocalPlayer:Kick("You have been kicked!")
                     break  -- stop if a chunk fails
                 end
 
